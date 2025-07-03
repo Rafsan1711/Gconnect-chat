@@ -23,10 +23,13 @@
     .chatlist { flex: 1; overflow-y: auto; margin-top: 8px; }
     .user-item, .group-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; }
     .user-item:hover, .group-item:hover { background: #2a343b; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #555; margin-right: 12px; }
-    .name { font-size: 1rem; color: #e1e1e1; flex: 1; }
-    .last-msg { font-size: .8rem; color: #aaa; }
-    .last-time { font-size: .7rem; color: #777; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #555; margin-right: 12px; position: relative; }
+    .avatar img { width:100%; height:100%; border-radius:50%; }
+    .name { font-size: 1rem; color: #e1e1e1; flex: 1; position: relative; }
+    /* online/offline dot */
+    .status-dot { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #242f34; }
+    .status-dot.online { background: #25d366; }
+    .status-dot.offline { background: #999; }
 
     /* ==== Chat Section ==== */
     .chat-section { width: 70%; display: flex; flex-direction: column; background: #111b21; }
@@ -184,12 +187,17 @@
         currentUser = user;
         loginBtn.style.display = 'none';
         userInfoEl.textContent = `Logged in as ${user.displayName}`;
-        // show header pic
         if (user.photoURL) {
           userPicEl.src = user.photoURL;
           userPicEl.style.display = 'block';
         }
-        db.ref('users/' + user.uid).set({ uid: user.uid, name: user.displayName, photoURL: user.photoURL || '', online: true });
+        // set online status
+        db.ref('users/' + user.uid).set({
+          uid: user.uid,
+          name: user.displayName,
+          photoURL: user.photoURL || '',
+          online: true
+        });
         loadChats();
       } else {
         loginBtn.style.display = 'block';
@@ -197,25 +205,34 @@
     });
 
     window.addEventListener('beforeunload', () => {
-      if (currentUser) db.ref('users/' + currentUser.uid + '/online').set(false);
+      if (currentUser) {
+        db.ref('users/' + currentUser.uid + '/online').set(false);
+      }
     });
 
     function loadChats() {
-      chatList.innerHTML = '';
-      db.ref('users').once('value', snap => {
+      // listen for real-time online/offline
+      db.ref('users').on('value', snap => {
+        chatList.innerHTML = '';
         snap.forEach(c => {
           const u = c.val();
           if (u.uid === currentUser.uid) return;
           const div = document.createElement('div');
           div.className = 'user-item';
           div.dataset.uid = u.uid;
-          div.innerHTML = `<div class="avatar"><img src="${u.photoURL || ''}" style="width:100%;height:100%;border-radius:50%;"/></div>
-                           <div class="name">${u.name}</div>`;
+          div.innerHTML = `
+            <div class="avatar">
+              <img src="${u.photoURL}" />
+              <span class="status-dot ${u.online ? 'online' : 'offline'}"></span>
+            </div>
+            <div class="name">${u.name}</div>
+          `;
           div.onclick = () => openChat([u]);
           chatList.appendChild(div);
         });
       });
 
+      // groups as before...
       db.ref('groups').off();
       db.ref('groups').on('value', gsnap => {
         document.querySelectorAll('.group-item').forEach(el => el.remove());
@@ -239,8 +256,8 @@
     }
 
     function openChat(users, gid = null) {
-      isGroup     = users.length > 1;
-      chatUsers   = [...users, { uid: currentUser.uid, name: currentUser.displayName }];
+      isGroup      = users.length > 1;
+      chatUsers    = [...users, { uid: currentUser.uid, name: currentUser.displayName }];
       currentChatId = gid || chatUsers.map(u => u.uid).sort().join('_');
       chatNameEl.textContent = isGroup
         ? 'Group: ' + users.map(u => u.name).join(', ')
@@ -250,9 +267,9 @@
         sidebar.style.display     = 'none';
         chatSection.style.display = 'flex';
       }
-      backBtn.style.display      = 'block';
-      messageInput.disabled      = false;
-      sendBtn.disabled           = false;
+      backBtn.style.display    = 'block';
+      messageInput.disabled    = false;
+      sendBtn.disabled         = false;
 
       loadMessages();
       db.ref('typing/' + currentChatId).off();
@@ -268,12 +285,12 @@
         sidebar.style.display     = 'flex';
         chatSection.style.display = 'none';
       }
-      backBtn.style.display       = 'none';
-      messagesEl.innerHTML        = '';
-      messageInput.value          = '';
-      messageInput.disabled       = true;
-      sendBtn.disabled            = true;
-      typingEl.style.visibility   = 'hidden';
+      backBtn.style.display     = 'none';
+      messagesEl.innerHTML      = '';
+      messageInput.value        = '';
+      messageInput.disabled     = true;
+      sendBtn.disabled          = true;
+      typingEl.style.visibility = 'hidden';
       db.ref('typing/' + currentChatId + '/' + currentUser.uid).set(false);
     };
 
@@ -288,9 +305,23 @@
           const m    = mSnap.val();
           const mine = m.senderId === currentUser.uid;
           const div  = document.createElement('div');
-          div.className = `message ${mine ? 'outgoing' : 'incoming'}`;
-          div.dataset.key  = mSnap.key;
-          div.dataset.path = path;
+          div.className   = `message ${mine ? 'outgoing' : 'incoming'}`;
+          div.dataset.key = mSnap.key;
+          div.dataset.path= path;
+
+          // if incoming, mark seen
+          if (!mine && !m.seenBy?.[currentUser.uid]) {
+            db.ref(`${path}/${mSnap.key}/seenBy/${currentUser.uid}`).set(true);
+          }
+
+          // determine status text
+          let statusText = m.status || '';
+          if (mine && m.status === 'Delivered' && m.seenBy) {
+            const seenCount = Object.keys(m.seenBy).length;
+            if (seenCount > 1 || (!isGroup && seenCount === 1)) {
+              statusText = 'Seen';
+            }
+          }
 
           div.innerHTML = `
             <div class="sender-line ${mine ? 'right' : ''}">
@@ -300,7 +331,7 @@
             </div>
             <div class="text">${m.text || '[Image]'}</div>
             <div class="time">${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            <div class="status">${m.status || ''}</div>
+            <div class="status">${statusText}</div>
           `;
           attachDelete(div);
           messagesEl.appendChild(div);
@@ -326,7 +357,8 @@
         senderPic:  currentUser.photoURL || '',
         text:       txt,
         timestamp:  Date.now(),
-        status:     'Sent'
+        status:     'Sent',
+        seenBy:     { [currentUser.uid]: true }
       };
       const ref = db.ref(isGroup
         ? `groups/${currentChatId}/chats`
@@ -381,8 +413,7 @@
       memberList.querySelectorAll('input:checked')
                 .forEach(cb => members[cb.value] = true);
       const groupId = Object.keys(members).sort().join('_');
-      await db.ref(`groups/${groupId}`)
-              .set({ name, members });
+      await db.ref(`groups/${groupId}`).set({ name, members });
       closeGroupModal();
       loadChats();
     };
