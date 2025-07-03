@@ -6,11 +6,11 @@
   <title>GConnect Chat App</title>
   <style>
     * { box-sizing: border-box; margin:0; padding:0 }
-    body { font-family: Arial, sans-serif; background: #121c21; color: #e1e1e1; height:100vh }
+    body { font-family:Arial,sans-serif; background:#121c21; color:#e1e1e1; height:100vh }
     .app { display:flex; height:100% }
-    .sidebar { width:30%; background:#242f34; border-right:1px solid #333; display:flex; flex-direction:column; transition:width .3s }
-    #header { background:#075e54; padding:16px; display:flex; align-items:center; }
-    #header h1 { flex:1; font-size:1.2rem; color:#fff; }
+    .sidebar { width:30%; background:#242f34; border-right:1px solid #333; display:flex; flex-direction:column }
+    #header { background:#075e54; padding:16px; display:flex; align-items:center }
+    #header h1 { flex:1; color:#fff; font-size:1.2rem }
     #header img { display:none; width:32px; height:32px; border-radius:50%; margin-left:8px }
     #header button { background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer }
     #loginBtn { margin:12px; padding:12px; background:#25d366; border:none; border-radius:4px; color:#fff; cursor:pointer }
@@ -20,23 +20,22 @@
     .chatlist { flex:1; overflow-y:auto }
     .user-item, .group-item { display:flex; align-items:center; padding:12px; border-bottom:1px solid #333; cursor:pointer }
     .user-item:hover, .group-item:hover { background:#2a343b }
-    .avatar { width:36px; height:36px; border-radius:50%; background:#555; overflow:hidden; margin-right:12px }
+    .avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; margin-right:12px }
     .avatar img { width:100%; height:100%; object-fit:cover }
     .name { flex:1; font-size:1rem }
-    /* chat section */
     .chat-section { width:70%; display:flex; flex-direction:column; background:#111b21 }
-    #chatHeader { background:#128c7e; padding:12px 16px; display:flex; align-items:center; position:relative }
+    #chatHeader { background:#128c7e; padding:12px 16px; display:flex; align-items:center; }
     #backBtn { display:none; background:none; border:none; color:#fff; font-size:1.2rem; margin-right:12px; cursor:pointer }
     #chatHeader .avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; margin-right:12px }
     #chatHeader .avatar img { width:100%; height:100%; object-fit:cover }
-    #chatHeader span { flex:1; font-weight:bold; color:#fff }
+    #chatHeader span { flex:1; color:#fff; font-weight:bold }
     #typingIndicator { display:inline-flex; align-items:center; margin-left:8px; visibility:hidden }
     #typingIndicator .dot { width:6px; height:6px; background:#fff; border-radius:50%; margin:0 1px; animation:bounce 1s infinite }
     @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)} }
     #messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column }
-    .message { max-width:70%; position:relative; margin-bottom:16px; padding:10px 12px 24px; border-radius:8px; word-wrap:break-word }
-    .message.incoming { background:#2a2f32; align-self:flex-start; border-radius:0 8px 8px 8px }
-    .message.outgoing { background:#056162; align-self:flex-end; border-radius:8px 0 8px 8px }
+    .message { max-width:70%; margin-bottom:16px; padding:10px 12px 24px; position:relative; border-radius:8px; word-wrap:break-word }
+    .incoming { background:#2a2f32; align-self:flex-start; border-radius:0 8px 8px 8px }
+    .outgoing { background:#056162; align-self:flex-end; border-radius:8px 0 8px 8px }
     .message .sender { display:flex; align-items:center; margin-bottom:4px }
     .message .sender img { width:20px; height:20px; border-radius:50%; object-fit:cover }
     .message .sender span { margin:0 6px; font-size:.8rem; font-weight:bold; color:#ccc }
@@ -46,12 +45,11 @@
     .input-area { display:flex; padding:12px; background:#2a343b }
     #messageInput { flex:1; padding:10px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; outline:none }
     #sendBtn { margin-left:8px; width:40px; height:40px; border:none; border-radius:50%; background:#128c7e; color:#fff; font-size:1.2rem; cursor:pointer }
-    /* modals */
     .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center }
     .modal.active { display:flex }
     .modal-content { background:#242f34; padding:20px; border-radius:8px; width:90%; max-width:400px; position:relative; color:#e1e1e1 }
     .close-btn { position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.2rem; color:#e1e1e1; cursor:pointer }
-    .member-list { max-height:200px; overflow-y:auto; margin-bottom:12px; }
+    .member-list { max-height:200px; overflow-y:auto; margin-bottom:12px }
     .member-item { margin:6px 0; font-size:.9rem }
     #deleteMenu { position:absolute; display:none; background:#242f34; box-shadow:0 2px 6px rgba(0,0,0,0.5); border-radius:4px; z-index:1000 }
     #deleteMenu button { width:100%; padding:8px 12px; background:none; border:none; text-align:left; color:#e1e1e1; cursor:pointer }
@@ -65,37 +63,37 @@
   </style>
 </head>
 <body>
+
   <div class="app">
-    <!-- Sidebar -->
     <div class="sidebar">
       <div id="header">
         <h1>GConnect</h1>
-        <img id="headerAvatar" src="" alt="Me"/>
+        <img id="headerAvatar" src="" alt="Me">
         <button id="groupBtn">＋</button>
       </div>
       <button id="loginBtn">Sign in with Google</button>
       <div id="userInfo"></div>
-      <input id="searchInput" type="text" placeholder="Search chats…" />
+      <input id="searchInput" type="text" placeholder="Search chats…">
       <div class="list-title">Chats</div>
       <div id="chatList" class="chatlist"></div>
     </div>
-    <!-- Chat -->
+
     <div class="chat-section">
       <div id="chatHeader">
         <button id="backBtn">←</button>
-        <div class="avatar"><img id="chatAvatar" src="" alt=""/></div>
+        <div class="avatar"><img id="chatAvatar" src="" alt=""></div>
         <span id="chatName">Select a chat</span>
         <div id="typingIndicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
       </div>
       <div id="messages"></div>
       <div class="input-area">
-        <input id="messageInput" type="text" placeholder="Type a message…" disabled/>
+        <input id="messageInput" type="text" placeholder="Type a message…" disabled>
         <button id="sendBtn" disabled>✈️</button>
       </div>
     </div>
   </div>
 
-  <!-- Group Modal -->
+  <!-- modals & delete -->
   <div id="groupModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeGroupModal()">×</button>
@@ -105,7 +103,6 @@
       <button id="createGroupBtn">Create</button>
     </div>
   </div>
-  <!-- Delete menu -->
   <div id="deleteMenu">
     <button id="deleteForMe">Delete for me</button>
     <button id="deleteForEveryone">Delete for everyone</button>
@@ -116,7 +113,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyAGs_lp4BbEWyywxRx1DuQMlrKQ2AiuHY0",
       authDomain: "gconnect-387da.firebaseapp.com",
@@ -140,7 +136,6 @@
           groupModal = document.getElementById('groupModal'),
           memberList = document.getElementById('memberList'),
           createGroupBtn = document.getElementById('createGroupBtn'),
-          chatSection = document.querySelector('.chat-section'),
           backBtn = document.getElementById('backBtn'),
           chatNameEl = document.getElementById('chatName'),
           chatAvatarImg = document.getElementById('chatAvatar'),
@@ -152,46 +147,38 @@
           delForAll = document.getElementById('deleteForEveryone'),
           typingEl = document.getElementById('typingIndicator');
 
-    let currentUser=null, currentChatId=null, isGroup=false, chatUsers=[], typingTimeout;
+    let currentUser=null, currentChatId=null, isGroup=false, typingTimeout;
 
     // Auth
     loginBtn.onclick = ()=> auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
     auth.onAuthStateChanged(user=>{
       if(user){
-        currentUser = user;
+        currentUser=user;
         loginBtn.style.display='none';
-        userInfoEl.textContent = `Logged in as ${user.displayName}`;
-        headerAvatar.src = user.photoURL; headerAvatar.style.display='block';
-        // save user
-        db.ref('users/'+user.uid).set({ uid:user.uid, name:user.displayName, photoURL:user.photoURL, online:true });
+        userInfoEl.textContent=`Logged in as ${user.displayName}`;
+        headerAvatar.src=user.photoURL; headerAvatar.style.display='block';
+        db.ref('users/'+user.uid).set({uid:user.uid,name:user.displayName,photoURL:user.photoURL,online:true});
         loadChats();
       } else {
         loginBtn.style.display='block';
         headerAvatar.style.display='none';
       }
     });
-    window.addEventListener('beforeunload', ()=> {
-      if(currentUser) db.ref('users/'+currentUser.uid+'/online').set(false);
-    });
+    window.addEventListener('beforeunload',()=>{ if(currentUser) db.ref('users/'+currentUser.uid+'/online').set(false); });
 
-    // Load chat list + groups
+    // Chat list + groups
     function loadChats(){
       chatList.innerHTML='';
-      // one-to-one
       db.ref('users').once('value',snap=>{
         snap.forEach(c=>{
           const u=c.val(); if(u.uid===currentUser.uid)return;
           const div=document.createElement('div');
           div.className='user-item'; div.dataset.uid=u.uid;
-          div.innerHTML=`
-            <div class="avatar"><img src="${u.photoURL}" /></div>
-            <div class="name">${u.name}</div>
-          `;
+          div.innerHTML=`<div class="avatar"><img src="${u.photoURL}" /></div><div class="name">${u.name}</div>`;
           div.onclick=()=> openChat([u]);
           chatList.appendChild(div);
         });
       });
-      // groups
       db.ref('groups').off().on('value',gsnap=>{
         document.querySelectorAll('.group-item').forEach(el=>el.remove());
         gsnap.forEach(g=>{
@@ -199,11 +186,8 @@
           if(!grp.members||!grp.members[currentUser.uid])return;
           const div=document.createElement('div');
           div.className='group-item'; div.dataset.gid=g.key;
-          div.innerHTML=`
-            <div class="avatar"><!-- no img --></div>
-            <div class="name">${grp.name}</div>
-          `;
-          div.onclick=()=> openGroup(g.key, grp);
+          div.innerHTML=`<div class="avatar"></div><div class="name">${grp.name}</div>`;
+          div.onclick=()=> openGroup(g.key,grp);
           chatList.appendChild(div);
         });
       });
@@ -212,28 +196,28 @@
     // Open one-to-one
     function openChat(users){
       isGroup=false;
-      chatUsers=[...users,{uid:currentUser.uid,name:currentUser.displayName,photoURL:currentUser.photoURL}];
-      currentChatId = chatUsers.map(u=>u.uid).sort().join('_');
+      currentChatId=users.map(u=>u.uid).concat(currentUser.uid).sort().join('_');
       chatNameEl.textContent=users[0].name;
-      chatAvatarImg.src = users[0].photoURL;
+      chatAvatarImg.src=users[0].photoURL;
       showChat();
       loadMessages();
       subscribeTyping();
     }
+
     // Open group
-    function openGroup(gid, grp){
-      isGroup=true;
-      currentChatId=gid;
+    function openGroup(gid,grp){
+      isGroup=true; currentChatId=gid;
       chatNameEl.textContent='Group: '+grp.name;
-      chatAvatarImg.src=''; // no avatar
+      chatAvatarImg.src='';
       showChat();
       loadMessages();
       subscribeTyping();
     }
+
     function showChat(){
       if(window.innerWidth<=600){
         document.querySelector('.sidebar').style.display='none';
-        chatSection.style.display='flex';
+        document.querySelector('.chat-section').style.display='flex';
       }
       backBtn.style.display='block';
       messageInput.disabled=false;
@@ -242,7 +226,7 @@
     backBtn.onclick=()=>{
       if(window.innerWidth<=600){
         document.querySelector('.sidebar').style.display='flex';
-        chatSection.style.display='none';
+        document.querySelector('.chat-section').style.display='none';
       }
       backBtn.style.display='none';
       messagesEl.innerHTML='';
@@ -255,27 +239,27 @@
 
     // Load messages
     function loadMessages(){
-      const path = isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
+      const path=isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
       db.ref(path).off().on('value',snap=>{
         messagesEl.innerHTML='';
         snap.forEach(ms=>{
           const m=ms.val(), mine=m.senderId===currentUser.uid;
           const div=document.createElement('div');
           div.className='message '+(mine?'outgoing':'incoming');
-          // sender header
-          const avatarHTML = `<img src="${m.senderPhoto||m.senderPhoto===null?'':''||m.senderPhoto||''}" />`;
+          // sender line
+          const senderLine = mine
+            ? `<span>${m.senderName}</span><img src="${m.senderPhoto}" />`
+            : `<img src="${m.senderPhoto}" /><span>${m.senderName}</span>`;
           div.innerHTML=`
-            <div class="sender ${mine?'outgoing':''}">
-              ${mine?`<span>${m.senderName}</span>${avatarHTML}`:`${avatarHTML}<span>${m.senderName}</span>`}
-            </div>
-            <div class="text">${m.text||''}</div>
+            <div class="sender ${mine?'outgoing':''}">${senderLine}</div>
+            <div class="text">${m.text}</div>
             <div class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
             <div class="status">${m.status||''}</div>
           `;
-          // attach delete
+          // delete
           div.addEventListener('contextmenu',e=>{
             e.preventDefault();
-            showDeleteMenu(e.pageX,e.pageY, path, ms.key, div);
+            showDeleteMenu(e.pageX,e.pageY,path,ms.key);
           });
           messagesEl.appendChild(div);
         });
@@ -283,18 +267,13 @@
       });
     }
 
-    // Send message
+    // Send
     sendBtn.onclick=()=>{
       const txt=messageInput.value.trim(); if(!txt)return;
-      const msg={
-        senderId:currentUser.uid,
-        senderName:currentUser.displayName,
-        senderPhoto:currentUser.photoURL,
-        text:txt,
-        timestamp:Date.now(),
-        status:'Sent'
-      };
-      const path = isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
+      const msg={ senderId:currentUser.uid, senderName:currentUser.displayName,
+                  senderPhoto:currentUser.photoURL, text:txt,
+                  timestamp:Date.now(), status:'Sent' };
+      const path=isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
       const ref=db.ref(path).push(msg);
       messageInput.value='';
       db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
@@ -303,32 +282,29 @@
     messageInput.addEventListener('input',()=>{
       db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(true);
       clearTimeout(typingTimeout);
-      typingTimeout=setTimeout(()=>{
-        db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
-      },1000);
+      typingTimeout=setTimeout(()=>
+        db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false),1000);
     });
 
-    // Typing indicator
+    // Typing
     function subscribeTyping(){
       db.ref('typing/'+currentChatId).off().on('value',snap=>{
-        const data=snap.val()||{};
-        const other=Object.keys(data).some(uid=>uid!==currentUser.uid&&data[uid]);
+        const d=snap.val()||{};
+        const other=Object.keys(d).some(uid=>uid!==currentUser.uid&&d[uid]);
         typingEl.style.visibility=other?'visible':'hidden';
       });
     }
 
     // Delete menu
-    function showDeleteMenu(x,y,path,key,el){
+    function showDeleteMenu(x,y,path,key){
       deleteMenu.style.top=y+'px';
       deleteMenu.style.left=x+'px';
       deleteMenu.style.display='block';
       deleteMenu.dataset.path=path;
       deleteMenu.dataset.key=key;
-      deleteMenu.dataset.elId=el; // not used
     }
     document.addEventListener('click',()=>deleteMenu.style.display='none');
     delForMe.onclick=()=>{
-      // just remove from DOM
       document.querySelector(`[data-key="${deleteMenu.dataset.key}"]`).remove();
       deleteMenu.style.display='none';
     };
@@ -350,22 +326,21 @@
       });
       groupModal.classList.add('active');
     };
-    window.closeGroupModal=()=> groupModal.classList.remove('active');
+    function closeGroupModal(){ groupModal.classList.remove('active'); }
     createGroupBtn.onclick=async()=>{
       const name=document.getElementById('groupNameInput').value.trim();
       if(!name)return;
-      const members={ [currentUser.uid]:true };
+      const members={[currentUser.uid]:true};
       memberList.querySelectorAll('input:checked').forEach(cb=>members[cb.value]=true);
       const gid=Object.keys(members).sort().join('_');
-      await db.ref('groups/'+gid).set({ name, members, chats:{} });
-      groupModal.classList.remove('active');
-      loadChats();
+      await db.ref('groups/'+gid).set({name,members,chats:{}});
+      closeGroupModal(); loadChats();
     };
 
     // Search
     searchInput.addEventListener('input',()=>{
       const term=searchInput.value.toLowerCase();
-      document.querySelectorAll('.user-item, .group-item').forEach(el=>{
+      document.querySelectorAll('.user-item,.group-item').forEach(el=>{
         el.style.display=el.querySelector('.name').textContent.toLowerCase().includes(term)?'flex':'none';
       });
     });
