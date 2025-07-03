@@ -15,7 +15,7 @@
     #header button { background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer }
     #loginBtn { margin:12px; padding:12px; background:#25d366; border:none; border-radius:4px; color:#fff; cursor:pointer }
     #userInfo { margin:0 12px 12px; font-size:.9rem; color:#ccc }
-    #searchInput { margin:0 12px; padding:8px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; width:calc(100%-24px) }
+    #searchInput { margin:0 12px; padding:8px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; width:calc(100% - 24px) }
     .list-title { margin:12px; font-weight:bold; color:#ccc }
     .chatlist { flex:1; overflow-y:auto }
     .user-item, .group-item { display:flex; align-items:center; padding:12px; border-bottom:1px solid #333; cursor:pointer }
@@ -63,7 +63,6 @@
   </style>
 </head>
 <body>
-
   <div class="app">
     <div class="sidebar">
       <div id="header">
@@ -77,7 +76,6 @@
       <div class="list-title">Chats</div>
       <div id="chatList" class="chatlist"></div>
     </div>
-
     <div class="chat-section">
       <div id="chatHeader">
         <button id="backBtn">←</button>
@@ -93,7 +91,6 @@
     </div>
   </div>
 
-  <!-- modals & delete -->
   <div id="groupModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeGroupModal()">×</button>
@@ -108,25 +105,18 @@
     <button id="deleteForEveryone">Delete for everyone</button>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyAGs_lp4BbEWyywxRx1DuQMlrKQ2AiuHY0",
-      authDomain: "gconnect-387da.firebaseapp.com",
-      databaseURL: "https://gconnect-387da-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "gconnect-387da",
-      storageBucket: "gconnect-387da.appspot.com",
-      messagingSenderId: "156103622971",
-      appId: "1:156103622971:web:fa6a2f8f21c9a24f6bb71e",
-      measurementId: "G-BR9WKZLV1D"
+      apiKey: "...", authDomain: "...", databaseURL: "...",
+      projectId: "...", storageBucket: "...",
+      messagingSenderId: "...", appId: "...", measurementId: "..."
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
-    // DOM refs
     const loginBtn = document.getElementById('loginBtn'),
           userInfoEl = document.getElementById('userInfo'),
           headerAvatar = document.getElementById('headerAvatar'),
@@ -149,29 +139,27 @@
 
     let currentUser=null, currentChatId=null, isGroup=false, typingTimeout;
 
-    // Auth
-    loginBtn.onclick = ()=> auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    auth.onAuthStateChanged(user=>{
+    loginBtn.onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    auth.onAuthStateChanged(user => {
       if(user){
         currentUser=user;
         loginBtn.style.display='none';
-        userInfoEl.textContent=`Logged in as ${user.displayName}`;
+        userInfoEl.textContent = `Logged in as ${user.displayName}`;
         headerAvatar.src=user.photoURL; headerAvatar.style.display='block';
-        db.ref('users/'+user.uid).set({uid:user.uid,name:user.displayName,photoURL:user.photoURL,online:true});
+        db.ref(`users/${user.uid}`).set({uid:user.uid,name:user.displayName,photoURL:user.photoURL,online:true});
         loadChats();
       } else {
         loginBtn.style.display='block';
         headerAvatar.style.display='none';
       }
     });
-    window.addEventListener('beforeunload',()=>{ if(currentUser) db.ref('users/'+currentUser.uid+'/online').set(false); });
+    window.addEventListener('beforeunload',()=> { if(currentUser) db.ref(`users/${currentUser.uid}/online`).set(false); });
 
-    // Chat list + groups
     function loadChats(){
       chatList.innerHTML='';
       db.ref('users').once('value',snap=>{
         snap.forEach(c=>{
-          const u=c.val(); if(u.uid===currentUser.uid)return;
+          const u=c.val(); if(u.uid===currentUser.uid) return;
           const div=document.createElement('div');
           div.className='user-item'; div.dataset.uid=u.uid;
           div.innerHTML=`<div class="avatar"><img src="${u.photoURL}" /></div><div class="name">${u.name}</div>`;
@@ -183,7 +171,7 @@
         document.querySelectorAll('.group-item').forEach(el=>el.remove());
         gsnap.forEach(g=>{
           const grp=g.val();
-          if(!grp.members||!grp.members[currentUser.uid])return;
+          if(!grp.members||!grp.members[currentUser.uid]) return;
           const div=document.createElement('div');
           div.className='group-item'; div.dataset.gid=g.key;
           div.innerHTML=`<div class="avatar"></div><div class="name">${grp.name}</div>`;
@@ -193,27 +181,19 @@
       });
     }
 
-    // Open one-to-one
     function openChat(users){
       isGroup=false;
-      currentChatId=users.map(u=>u.uid).concat(currentUser.uid).sort().join('_');
+      currentChatId=[...users.map(u=>u.uid),currentUser.uid].sort().join('_');
       chatNameEl.textContent=users[0].name;
       chatAvatarImg.src=users[0].photoURL;
-      showChat();
-      loadMessages();
-      subscribeTyping();
+      showChat(); loadMessages(); subscribeTyping();
     }
-
-    // Open group
     function openGroup(gid,grp){
       isGroup=true; currentChatId=gid;
       chatNameEl.textContent='Group: '+grp.name;
       chatAvatarImg.src='';
-      showChat();
-      loadMessages();
-      subscribeTyping();
+      showChat(); loadMessages(); subscribeTyping();
     }
-
     function showChat(){
       if(window.innerWidth<=600){
         document.querySelector('.sidebar').style.display='none';
@@ -234,10 +214,9 @@
       messageInput.disabled=true;
       sendBtn.disabled=true;
       typingEl.style.visibility='hidden';
-      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+      db.ref(`typing/${currentChatId}/${currentUser.uid}`).set(false);
     };
 
-    // Load messages
     function loadMessages(){
       const path=isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
       db.ref(path).off().on('value',snap=>{
@@ -246,20 +225,17 @@
           const m=ms.val(), mine=m.senderId===currentUser.uid;
           const div=document.createElement('div');
           div.className='message '+(mine?'outgoing':'incoming');
-          // sender line
           const senderLine = mine
             ? `<span>${m.senderName}</span><img src="${m.senderPhoto}" />`
             : `<img src="${m.senderPhoto}" /><span>${m.senderName}</span>`;
           div.innerHTML=`
             <div class="sender ${mine?'outgoing':''}">${senderLine}</div>
             <div class="text">${m.text}</div>
-            <div class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="time">${new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
             <div class="status">${m.status||''}</div>
           `;
-          // delete
           div.addEventListener('contextmenu',e=>{
-            e.preventDefault();
-            showDeleteMenu(e.pageX,e.pageY,path,ms.key);
+            e.preventDefault(); showDeleteMenu(e.pageX,e.pageY,path,ms.key);
           });
           messagesEl.appendChild(div);
         });
@@ -267,35 +243,33 @@
       });
     }
 
-    // Send
     sendBtn.onclick=()=>{
-      const txt=messageInput.value.trim(); if(!txt)return;
-      const msg={ senderId:currentUser.uid, senderName:currentUser.displayName,
-                  senderPhoto:currentUser.photoURL, text:txt,
-                  timestamp:Date.now(), status:'Sent' };
+      const txt=messageInput.value.trim(); if(!txt) return;
+      const msg={ senderId:currentUser.uid,senderName:currentUser.displayName,
+                  senderPhoto:currentUser.photoURL,text:txt,
+                  timestamp:Date.now(),status:'Sent' };
       const path=isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
       const ref=db.ref(path).push(msg);
       messageInput.value='';
-      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+      db.ref(`typing/${currentChatId}/${currentUser.uid}`).set(false);
       ref.then(r=>r.update({status:'Delivered'}));
     };
     messageInput.addEventListener('input',()=>{
-      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(true);
+      db.ref(`typing/${currentChatId}/${currentUser.uid}`).set(true);
       clearTimeout(typingTimeout);
-      typingTimeout=setTimeout(()=>
-        db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false),1000);
+      typingTimeout=setTimeout(()=>{
+        db.ref(`typing/${currentChatId}/${currentUser.uid}`).set(false);
+      },1000);
     });
 
-    // Typing
     function subscribeTyping(){
-      db.ref('typing/'+currentChatId).off().on('value',snap=>{
+      db.ref(`typing/${currentChatId}`).off().on('value',snap=>{
         const d=snap.val()||{};
-        const other=Object.keys(d).some(uid=>uid!==currentUser.uid&&d[uid]);
+        const other=Object.keys(d).some(uid=>uid!==currentUser.uid && d[uid]);
         typingEl.style.visibility=other?'visible':'hidden';
       });
     }
 
-    // Delete menu
     function showDeleteMenu(x,y,path,key){
       deleteMenu.style.top=y+'px';
       deleteMenu.style.left=x+'px';
@@ -309,11 +283,10 @@
       deleteMenu.style.display='none';
     };
     delForAll.onclick=()=>{
-      db.ref(deleteMenu.dataset.path+'/'+deleteMenu.dataset.key).remove();
+      db.ref(`${deleteMenu.dataset.path}/${deleteMenu.dataset.key}`).remove();
       deleteMenu.style.display='none';
     };
 
-    // Group modal
     groupBtn.onclick=async()=>{
       memberList.innerHTML='';
       const snap=await db.ref('users').once('value');
@@ -328,16 +301,14 @@
     };
     function closeGroupModal(){ groupModal.classList.remove('active'); }
     createGroupBtn.onclick=async()=>{
-      const name=document.getElementById('groupNameInput').value.trim();
-      if(!name)return;
+      const name=document.getElementById('groupNameInput').value.trim(); if(!name)return;
       const members={[currentUser.uid]:true};
       memberList.querySelectorAll('input:checked').forEach(cb=>members[cb.value]=true);
       const gid=Object.keys(members).sort().join('_');
-      await db.ref('groups/'+gid).set({name,members,chats:{}});
+      await db.ref(`groups/${gid}`).set({name,members});
       closeGroupModal(); loadChats();
     };
 
-    // Search
     searchInput.addEventListener('input',()=>{
       const term=searchInput.value.toLowerCase();
       document.querySelectorAll('.user-item,.group-item').forEach(el=>{
@@ -346,4 +317,4 @@
     });
   </script>
 </body>
-  </html>
+        </html>
