@@ -5,8 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GConnect Chat App</title>
   <style>
-    /* [unchanged styles from your original code] */
-    /* Code omitted for brevity */
+    
+    /* ==== Reset & Base ==== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; }
+    .app { display: flex; height: 100%; }/* ==== Sidebar ==== */
+.sidebar { width: 30%; background: #242f34; border-right: 1px solid #333; display: flex; flex-direction: column; transition: width .3s; }
+#header { background: #075e54; color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+#header button { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+#loginBtn { margin: 12px; padding: 12px; border: none; border-radius: 4px; cursor: pointer; background: #25d366; color: #fff; }
+#userInfo { margin: 0 12px 12px; font-size: .9rem; color: #ccc; }
+#searchInput { margin: 0 12px; padding: 8px; width: calc(100% - 24px); border-radius: 20px; border: 1px solid #333; background: #121c21; color: #e1e1e1; }
+.list-title { margin: 12px; font-weight: bold; color: #ccc; }
+.chatlist { flex: 1; overflow-y: auto; margin-top: 8px; }
+.user-item, .group-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; }
+.user-item:hover, .group-item:hover { background: #2a343b; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: #555; margin-right: 12px; }
+.name { font-size: 1rem; color: #e1e1e1; flex: 1; }
+.last-msg { font-size: .8rem; color: #aaa; }
+.last-time { font-size: .7rem; color: #777; }
+
+/* ==== Chat Section ==== */
+.chat-section { width: 70%; display: flex; flex-direction: column; background: #111b21; }
+#chatHeader { background: #128c7e; color: #fff; padding: 12px 16px; display: flex; align-items: center; position: relative; }
+#backBtn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; margin-right: 12px; display: none; }
+#chatHeader .avatar { width: 32px; height: 32px; border-radius: 50%; background: #555; margin-right: 12px; }
+#chatHeader span { font-weight: bold; flex: 1; }
+#typingIndicator { display: inline-flex; align-items: center; margin-left: 8px; visibility: hidden; }
+#typingIndicator .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; margin: 0 1px; animation: bounce 1s infinite; }
+@keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-4px); } }
+
+#messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; }
+.message { max-width: 70%; margin-bottom: 16px; padding: 10px 12px 24px; position: relative; word-wrap: break-word; border-radius: 8px; }
+.sender { font-size: .75rem; font-weight: bold; margin-bottom: 4px; color: #ccc; }
+.time { font-size: .7rem; color: #aaa; position: absolute; bottom: 4px; right: 8px; }
+.incoming { background: #2a2f32; align-self: flex-start; border-radius: 0 8px 8px 8px; }
+.outgoing { background: #056162; align-self: flex-end; border-radius: 8px 0 8px 8px; color: #e1e1e1; }
+.status { font-size: .6rem; color: #777; position: absolute; bottom: 4px; left: 8px; }
+
+.input-area { display: flex; padding: 12px; background: #2a343b; }
+#messageInput { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #333; outline: none; background: #121c21; color: #e1e1e1; }
+#sendBtn { margin-left: 8px; background: #128c7e; color: #fff; border-radius: 50%; width: 40px; height: 40px; border: none; cursor: pointer; font-size: 1.2rem; }
+
+/* ==== Modals ==== */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+.modal-content { background: #242f34; border-radius: 8px; width: 90%; max-width: 400px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: relative; text-align: center; color: #e1e1e1; }
+.close-btn { position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #e1e1e1; }
+.member-list { max-height: 200px; overflow-y: auto; margin-bottom: 12px; text-align: left; }
+.member-item { margin: 6px 0; font-size: .9rem; }
+
+/* ==== Delete Menu ==== */
+#deleteMenu { position: absolute; display: none; background: #242f34; box-shadow: 0 2px 6px rgba(0,0,0,0.5); border-radius: 4px; z-index: 1000; }
+#deleteMenu button { width: 100%; padding: 8px 12px; background: none; border: none; text-align: left; cursor: pointer; color: #e1e1e1; }
+#deleteMenu button:hover { background: #2a343b; }
+
+/* ==== Responsive: Mobile ==== */
+@media (max-width: 600px) {
+  .app { flex-direction: column; }
+  .sidebar { width: 100%; height: 100vh; border-right: none; border-bottom: none; }
+  .chat-section { width: 100%; height: 100vh; display: none; }
+  #backBtn { display: block; }
+}
+
+  
   </style>
 </head>
 <body>
