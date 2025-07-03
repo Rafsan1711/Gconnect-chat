@@ -109,14 +109,16 @@
   </div>  <!-- Firebase SDK -->  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>  <script>
     // Firebase init
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAGs_lp4BbEWyywxRx1DuQMlrKQ2AiuHY0",
   authDomain: "gconnect-387da.firebaseapp.com",
+  databaseURL: "https://gconnect-387da-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "gconnect-387da",
   storageBucket: "gconnect-387da.firebasestorage.app",
   messagingSenderId: "156103622971",
-  appId: "1:156103622971:web:ce77fdf096513ebc6bb71e",
-  measurementId: "G-P9N47M53XP"
+  appId: "1:156103622971:web:fa6a2f8f21c9a24f6bb71e",
+  measurementId: "G-BR9WKZLV1D"
 };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
