@@ -5,114 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GConnect Chat App</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; }
-    .app { display: flex; height: 100%; }
-    .sidebar { width: 30%; background: #242f34; border-right: 1px solid #333; display: flex; flex-direction: column; transition: width .3s; }
-    #header {
-      background: #075e54; color: #fff; padding: 16px;
-      display: flex; justify-content: space-between; align-items: center; font-weight: bold;
-    }
-    #header img { border-radius: 50%; width: 32px; height: 32px; margin-left: 12px; display: none; }
-    #loginBtn { margin: 12px; padding: 12px; border: none; border-radius: 4px; cursor: pointer; background: #25d366; color: #fff; }
-    #userInfo { margin: 0 12px 12px; font-size: .9rem; color: #ccc; }
-    #searchInput { margin: 0 12px; padding: 8px; width: calc(100% - 24px); border-radius: 20px; border: 1px solid #333; background: #121c21; color: #e1e1e1; }
-    .list-title { margin: 12px; font-weight: bold; color: #ccc; }
-    .chatlist { flex: 1; overflow-y: auto; margin-top: 8px; }
-    .user-item, .group-item {
-      padding: 12px; border-bottom: 1px solid #333;
-      cursor: pointer; display: flex; align-items: center;
-    }
-    .user-item:hover, .group-item:hover { background: #2a343b; }
-    .avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: #555; margin-right: 12px; overflow: hidden;
-    }
-    .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-    .name { font-size: 1rem; color: #e1e1e1; flex: 1; }
-    .chat-section { width: 70%; display: flex; flex-direction: column; background: #111b21; }
-    #chatHeader { background: #128c7e; color: #fff; padding: 12px 16px; display: flex; align-items: center; position: relative; }
-    #backBtn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; margin-right: 12px; display: none; }
-    #chatHeader .avatar { width: 32px; height: 32px; border-radius: 50%; background: #555; margin-right: 12px; overflow: hidden; }
-    #chatHeader .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    #chatHeader span { font-weight: bold; flex: 1; }
-    #typingIndicator { display: inline-flex; align-items: center; margin-left: 8px; visibility: hidden; }
-    #typingIndicator .dot {
-      width: 6px; height: 6px; background: #fff;
-      border-radius: 50%; margin: 0 1px; animation: bounce 1s infinite;
-    }
-    @keyframes bounce {
-      0%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-4px); }
-    }
-    #messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; }
-    .message {
-      max-width: 70%; margin-bottom: 16px;
-      padding: 10px 12px 24px; position: relative;
-      word-wrap: break-word; border-radius: 8px;
-    }
-    .sender { font-size: .75rem; font-weight: bold; margin-bottom: 4px; color: #ccc; }
-    .time { font-size: .7rem; color: #aaa; position: absolute; bottom: 4px; right: 8px; }
-    .incoming { background: #2a2f32; align-self: flex-start; border-radius: 0 8px 8px 8px; }
-    .outgoing { background: #056162; align-self: flex-end; border-radius: 8px 0 8px 8px; color: #e1e1e1; }
-    .status { font-size: .6rem; color: #777; position: absolute; bottom: 4px; left: 8px; }
-    .input-area { display: flex; padding: 12px; background: #2a343b; }
-    #messageInput {
-      flex: 1; padding: 10px; border-radius: 20px;
-      border: 1px solid #333; outline: none;
-      background: #121c21; color: #e1e1e1;
-    }
-    #sendBtn {
-      margin-left: 8px; background: #128c7e;
-      color: #fff; border-radius: 50%;
-      width: 40px; height: 40px;
-      border: none; cursor: pointer; font-size: 1.2rem;
-    }
-    @media (max-width: 600px) {
-      .app { flex-direction: column; }
-      .sidebar { width: 100%; height: 100vh; }
-      .chat-section { width: 100%; height: 100vh; display: none; }
-      #backBtn { display: block; }
+    * { box-sizing: border-box; margin:0; padding:0 }
+    body { font-family: Arial, sans-serif; background: #121c21; color: #e1e1e1; height:100vh }
+    .app { display:flex; height:100% }
+    .sidebar { width:30%; background:#242f34; border-right:1px solid #333; display:flex; flex-direction:column; transition:width .3s }
+    #header { background:#075e54; padding:16px; display:flex; align-items:center; }
+    #header h1 { flex:1; font-size:1.2rem; color:#fff; }
+    #header img { display:none; width:32px; height:32px; border-radius:50%; margin-left:8px }
+    #header button { background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer }
+    #loginBtn { margin:12px; padding:12px; background:#25d366; border:none; border-radius:4px; color:#fff; cursor:pointer }
+    #userInfo { margin:0 12px 12px; font-size:.9rem; color:#ccc }
+    #searchInput { margin:0 12px; padding:8px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; width:calc(100%-24px) }
+    .list-title { margin:12px; font-weight:bold; color:#ccc }
+    .chatlist { flex:1; overflow-y:auto }
+    .user-item, .group-item { display:flex; align-items:center; padding:12px; border-bottom:1px solid #333; cursor:pointer }
+    .user-item:hover, .group-item:hover { background:#2a343b }
+    .avatar { width:36px; height:36px; border-radius:50%; background:#555; overflow:hidden; margin-right:12px }
+    .avatar img { width:100%; height:100%; object-fit:cover }
+    .name { flex:1; font-size:1rem }
+    /* chat section */
+    .chat-section { width:70%; display:flex; flex-direction:column; background:#111b21 }
+    #chatHeader { background:#128c7e; padding:12px 16px; display:flex; align-items:center; position:relative }
+    #backBtn { display:none; background:none; border:none; color:#fff; font-size:1.2rem; margin-right:12px; cursor:pointer }
+    #chatHeader .avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; margin-right:12px }
+    #chatHeader .avatar img { width:100%; height:100%; object-fit:cover }
+    #chatHeader span { flex:1; font-weight:bold; color:#fff }
+    #typingIndicator { display:inline-flex; align-items:center; margin-left:8px; visibility:hidden }
+    #typingIndicator .dot { width:6px; height:6px; background:#fff; border-radius:50%; margin:0 1px; animation:bounce 1s infinite }
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)} }
+    #messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column }
+    .message { max-width:70%; position:relative; margin-bottom:16px; padding:10px 12px 24px; border-radius:8px; word-wrap:break-word }
+    .message.incoming { background:#2a2f32; align-self:flex-start; border-radius:0 8px 8px 8px }
+    .message.outgoing { background:#056162; align-self:flex-end; border-radius:8px 0 8px 8px }
+    .message .sender { display:flex; align-items:center; margin-bottom:4px }
+    .message .sender img { width:20px; height:20px; border-radius:50%; object-fit:cover }
+    .message .sender span { margin:0 6px; font-size:.8rem; font-weight:bold; color:#ccc }
+    .message .sender.outgoing img { order:2; margin-left:6px; margin-right:0 }
+    .message .time { position:absolute; bottom:4px; right:8px; font-size:.7rem; color:#aaa }
+    .message .status { position:absolute; bottom:4px; left:8px; font-size:.6rem; color:#777 }
+    .input-area { display:flex; padding:12px; background:#2a343b }
+    #messageInput { flex:1; padding:10px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; outline:none }
+    #sendBtn { margin-left:8px; width:40px; height:40px; border:none; border-radius:50%; background:#128c7e; color:#fff; font-size:1.2rem; cursor:pointer }
+    /* modals */
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center }
+    .modal.active { display:flex }
+    .modal-content { background:#242f34; padding:20px; border-radius:8px; width:90%; max-width:400px; position:relative; color:#e1e1e1 }
+    .close-btn { position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.2rem; color:#e1e1e1; cursor:pointer }
+    .member-list { max-height:200px; overflow-y:auto; margin-bottom:12px; }
+    .member-item { margin:6px 0; font-size:.9rem }
+    #deleteMenu { position:absolute; display:none; background:#242f34; box-shadow:0 2px 6px rgba(0,0,0,0.5); border-radius:4px; z-index:1000 }
+    #deleteMenu button { width:100%; padding:8px 12px; background:none; border:none; text-align:left; color:#e1e1e1; cursor:pointer }
+    #deleteMenu button:hover { background:#2a343b }
+    @media(max-width:600px){
+      .app{flex-direction:column}
+      .sidebar{width:100%;height:100vh}
+      .chat-section{width:100%;height:100vh;display:none}
+      #backBtn{display:block}
     }
   </style>
 </head>
 <body>
   <div class="app">
+    <!-- Sidebar -->
     <div class="sidebar">
       <div id="header">
-        GConnect
-        <img id="headerAvatar" src="" alt="avatar" />
-        <button id="groupBtn">+</button>
+        <h1>GConnect</h1>
+        <img id="headerAvatar" src="" alt="Me"/>
+        <button id="groupBtn">＋</button>
       </div>
       <button id="loginBtn">Sign in with Google</button>
       <div id="userInfo"></div>
-      <input type="text" id="searchInput" placeholder="Search chats..." />
+      <input id="searchInput" type="text" placeholder="Search chats…" />
       <div class="list-title">Chats</div>
       <div id="chatList" class="chatlist"></div>
     </div>
+    <!-- Chat -->
     <div class="chat-section">
       <div id="chatHeader">
-        <button id="backBtn">&larr;</button>
-        <div class="avatar"><img id="chatAvatar" src="" alt="chat avatar" /></div>
+        <button id="backBtn">←</button>
+        <div class="avatar"><img id="chatAvatar" src="" alt=""/></div>
         <span id="chatName">Select a chat</span>
-        <div id="typingIndicator">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-        </div>
+        <div id="typingIndicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
       </div>
       <div id="messages"></div>
       <div class="input-area">
-        <input type="text" id="messageInput" placeholder="Type a message..." disabled />
+        <input id="messageInput" type="text" placeholder="Type a message…" disabled/>
         <button id="sendBtn" disabled>✈️</button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Group Modal -->
+  <div id="groupModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeGroupModal()">×</button>
+      <h2>Create Group</h2>
+      <input id="groupNameInput" placeholder="Group name" style="width:100%;padding:8px;margin-bottom:12px;border:1px solid #333;border-radius:4px;background:#121c21;color:#e1e1e1">
+      <div id="memberList" class="member-list"></div>
+      <button id="createGroupBtn">Create</button>
+    </div>
+  </div>
+  <!-- Delete menu -->
+  <div id="deleteMenu">
+    <button id="deleteForMe">Delete for me</button>
+    <button id="deleteForEveryone">Delete for everyone</button>
+  </div>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
   <script>
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyAGs_lp4BbEWyywxRx1DuQMlrKQ2AiuHY0",
       authDomain: "gconnect-387da.firebaseapp.com",
@@ -126,141 +130,245 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
+    // DOM refs
     const loginBtn = document.getElementById('loginBtn'),
           userInfoEl = document.getElementById('userInfo'),
+          headerAvatar = document.getElementById('headerAvatar'),
           chatList = document.getElementById('chatList'),
-          chatNameEl = document.getElementById('chatName'),
-          typingEl = document.getElementById('typingIndicator'),
+          searchInput = document.getElementById('searchInput'),
+          groupBtn = document.getElementById('groupBtn'),
+          groupModal = document.getElementById('groupModal'),
+          memberList = document.getElementById('memberList'),
+          createGroupBtn = document.getElementById('createGroupBtn'),
+          chatSection = document.querySelector('.chat-section'),
           backBtn = document.getElementById('backBtn'),
+          chatNameEl = document.getElementById('chatName'),
+          chatAvatarImg = document.getElementById('chatAvatar'),
           messagesEl = document.getElementById('messages'),
           messageInput = document.getElementById('messageInput'),
           sendBtn = document.getElementById('sendBtn'),
-          groupBtn = document.getElementById('groupBtn'),
-          headerAvatar = document.getElementById('headerAvatar'),
-          chatAvatar = document.getElementById('chatAvatar');
+          deleteMenu = document.getElementById('deleteMenu'),
+          delForMe = document.getElementById('deleteForMe'),
+          delForAll = document.getElementById('deleteForEveryone'),
+          typingEl = document.getElementById('typingIndicator');
 
-    let currentUser = null, currentChatId = null, isGroup = false, chatUsers = [], typingTimeout;
+    let currentUser=null, currentChatId=null, isGroup=false, chatUsers=[], typingTimeout;
 
-    loginBtn.onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    auth.onAuthStateChanged(user => {
-      if (user) {
+    // Auth
+    loginBtn.onclick = ()=> auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    auth.onAuthStateChanged(user=>{
+      if(user){
         currentUser = user;
-        loginBtn.style.display = 'none';
+        loginBtn.style.display='none';
         userInfoEl.textContent = `Logged in as ${user.displayName}`;
-        headerAvatar.src = user.photoURL;
-        headerAvatar.style.display = 'block';
-
-        db.ref('users/' + user.uid).set({
-          uid: user.uid,
-          name: user.displayName,
-          photoURL: user.photoURL,
-          online: true
-        });
-
+        headerAvatar.src = user.photoURL; headerAvatar.style.display='block';
+        // save user
+        db.ref('users/'+user.uid).set({ uid:user.uid, name:user.displayName, photoURL:user.photoURL, online:true });
         loadChats();
       } else {
-        loginBtn.style.display = 'block';
+        loginBtn.style.display='block';
+        headerAvatar.style.display='none';
       }
     });
+    window.addEventListener('beforeunload', ()=> {
+      if(currentUser) db.ref('users/'+currentUser.uid+'/online').set(false);
+    });
 
-    function loadChats() {
-      chatList.innerHTML = '';
-      db.ref('users').once('value', snap => {
-        snap.forEach(c => {
-          const u = c.val();
-          if (u.uid === currentUser.uid) return;
-          const div = document.createElement('div');
-          div.className = 'user-item';
-          div.dataset.uid = u.uid;
-          div.innerHTML = `
-            <div class="avatar"><img src="${u.photoURL || ''}" /></div>
+    // Load chat list + groups
+    function loadChats(){
+      chatList.innerHTML='';
+      // one-to-one
+      db.ref('users').once('value',snap=>{
+        snap.forEach(c=>{
+          const u=c.val(); if(u.uid===currentUser.uid)return;
+          const div=document.createElement('div');
+          div.className='user-item'; div.dataset.uid=u.uid;
+          div.innerHTML=`
+            <div class="avatar"><img src="${u.photoURL}" /></div>
             <div class="name">${u.name}</div>
           `;
-          div.onclick = () => openChat([u]);
+          div.onclick=()=> openChat([u]);
+          chatList.appendChild(div);
+        });
+      });
+      // groups
+      db.ref('groups').off().on('value',gsnap=>{
+        document.querySelectorAll('.group-item').forEach(el=>el.remove());
+        gsnap.forEach(g=>{
+          const grp=g.val();
+          if(!grp.members||!grp.members[currentUser.uid])return;
+          const div=document.createElement('div');
+          div.className='group-item'; div.dataset.gid=g.key;
+          div.innerHTML=`
+            <div class="avatar"><!-- no img --></div>
+            <div class="name">${grp.name}</div>
+          `;
+          div.onclick=()=> openGroup(g.key, grp);
           chatList.appendChild(div);
         });
       });
     }
 
-    function openChat(users) {
-      isGroup = false;
-      chatUsers = [...users, { uid: currentUser.uid, name: currentUser.displayName }];
-      currentChatId = chatUsers.map(u => u.uid).sort().join('_');
-      chatNameEl.textContent = users[0].name;
-      chatAvatar.src = users[0].photoURL || '';
-      chatSectionShow();
+    // Open one-to-one
+    function openChat(users){
+      isGroup=false;
+      chatUsers=[...users,{uid:currentUser.uid,name:currentUser.displayName,photoURL:currentUser.photoURL}];
+      currentChatId = chatUsers.map(u=>u.uid).sort().join('_');
+      chatNameEl.textContent=users[0].name;
+      chatAvatarImg.src = users[0].photoURL;
+      showChat();
       loadMessages();
+      subscribeTyping();
     }
-
-    function chatSectionShow() {
-      if (window.innerWidth <= 600) {
-        document.querySelector('.sidebar').style.display = 'none';
-        document.querySelector('.chat-section').style.display = 'flex';
-      }
-      backBtn.style.display = 'block';
-      messageInput.disabled = false;
-      sendBtn.disabled = false;
+    // Open group
+    function openGroup(gid, grp){
+      isGroup=true;
+      currentChatId=gid;
+      chatNameEl.textContent='Group: '+grp.name;
+      chatAvatarImg.src=''; // no avatar
+      showChat();
+      loadMessages();
+      subscribeTyping();
     }
-
-    backBtn.onclick = () => {
-      if (window.innerWidth <= 600) {
-        document.querySelector('.sidebar').style.display = 'flex';
-        document.querySelector('.chat-section').style.display = 'none';
+    function showChat(){
+      if(window.innerWidth<=600){
+        document.querySelector('.sidebar').style.display='none';
+        chatSection.style.display='flex';
       }
-      backBtn.style.display = 'none';
-      messagesEl.innerHTML = '';
-      messageInput.value = '';
-      sendBtn.disabled = true;
-      messageInput.disabled = true;
-      typingEl.style.visibility = 'hidden';
-      db.ref('typing/' + currentChatId + '/' + currentUser.uid).set(false);
+      backBtn.style.display='block';
+      messageInput.disabled=false;
+      sendBtn.disabled=false;
+    }
+    backBtn.onclick=()=>{
+      if(window.innerWidth<=600){
+        document.querySelector('.sidebar').style.display='flex';
+        chatSection.style.display='none';
+      }
+      backBtn.style.display='none';
+      messagesEl.innerHTML='';
+      messageInput.value='';
+      messageInput.disabled=true;
+      sendBtn.disabled=true;
+      typingEl.style.visibility='hidden';
+      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
     };
 
-    function loadMessages() {
-      db.ref('chats/' + currentChatId).off();
-      db.ref('chats/' + currentChatId).on('value', snap => {
-        messagesEl.innerHTML = '';
-        snap.forEach(mSnap => {
-          const m = mSnap.val(), mine = m.senderId === currentUser.uid;
-          const div = document.createElement('div');
-          div.className = `message ${mine ? 'outgoing' : 'incoming'}`;
-          div.innerHTML = `
-            <div class="sender">${m.senderName}</div>
-            <div class="text">${m.text}</div>
-            <div class="time">${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            <div class="status">${m.status || ''}</div>
+    // Load messages
+    function loadMessages(){
+      const path = isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
+      db.ref(path).off().on('value',snap=>{
+        messagesEl.innerHTML='';
+        snap.forEach(ms=>{
+          const m=ms.val(), mine=m.senderId===currentUser.uid;
+          const div=document.createElement('div');
+          div.className='message '+(mine?'outgoing':'incoming');
+          // sender header
+          const avatarHTML = `<img src="${m.senderPhoto||m.senderPhoto===null?'':''||m.senderPhoto||''}" />`;
+          div.innerHTML=`
+            <div class="sender ${mine?'outgoing':''}">
+              ${mine?`<span>${m.senderName}</span>${avatarHTML}`:`${avatarHTML}<span>${m.senderName}</span>`}
+            </div>
+            <div class="text">${m.text||''}</div>
+            <div class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="status">${m.status||''}</div>
           `;
+          // attach delete
+          div.addEventListener('contextmenu',e=>{
+            e.preventDefault();
+            showDeleteMenu(e.pageX,e.pageY, path, ms.key, div);
+          });
           messagesEl.appendChild(div);
         });
-        messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+        messagesEl.scrollTo({top:messagesEl.scrollHeight,behavior:'smooth'});
       });
     }
 
-    messageInput.addEventListener('input', () => {
-      db.ref('typing/' + currentChatId + '/' + currentUser.uid).set(true);
+    // Send message
+    sendBtn.onclick=()=>{
+      const txt=messageInput.value.trim(); if(!txt)return;
+      const msg={
+        senderId:currentUser.uid,
+        senderName:currentUser.displayName,
+        senderPhoto:currentUser.photoURL,
+        text:txt,
+        timestamp:Date.now(),
+        status:'Sent'
+      };
+      const path = isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`;
+      const ref=db.ref(path).push(msg);
+      messageInput.value='';
+      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+      ref.then(r=>r.update({status:'Delivered'}));
+    };
+    messageInput.addEventListener('input',()=>{
+      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(true);
       clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => db.ref('typing/' + currentChatId + '/' + currentUser.uid).set(false), 1000);
+      typingTimeout=setTimeout(()=>{
+        db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+      },1000);
     });
 
-    sendBtn.onclick = () => {
-      const txt = messageInput.value.trim();
-      if (!txt) return;
-      const msg = {
-        senderId: currentUser.uid,
-        senderName: currentUser.displayName,
-        text: txt,
-        timestamp: Date.now(),
-        status: 'Sent'
-      };
-      const ref = db.ref('chats/' + currentChatId).push(msg);
-      messageInput.value = '';
-      db.ref('typing/' + currentChatId + '/' + currentUser.uid).set(false);
-      ref.then(r => r.update({ status: 'Delivered' }));
+    // Typing indicator
+    function subscribeTyping(){
+      db.ref('typing/'+currentChatId).off().on('value',snap=>{
+        const data=snap.val()||{};
+        const other=Object.keys(data).some(uid=>uid!==currentUser.uid&&data[uid]);
+        typingEl.style.visibility=other?'visible':'hidden';
+      });
+    }
+
+    // Delete menu
+    function showDeleteMenu(x,y,path,key,el){
+      deleteMenu.style.top=y+'px';
+      deleteMenu.style.left=x+'px';
+      deleteMenu.style.display='block';
+      deleteMenu.dataset.path=path;
+      deleteMenu.dataset.key=key;
+      deleteMenu.dataset.elId=el; // not used
+    }
+    document.addEventListener('click',()=>deleteMenu.style.display='none');
+    delForMe.onclick=()=>{
+      // just remove from DOM
+      document.querySelector(`[data-key="${deleteMenu.dataset.key}"]`).remove();
+      deleteMenu.style.display='none';
+    };
+    delForAll.onclick=()=>{
+      db.ref(deleteMenu.dataset.path+'/'+deleteMenu.dataset.key).remove();
+      deleteMenu.style.display='none';
     };
 
-    window.addEventListener('beforeunload', () => {
-      if (currentUser) db.ref('users/' + currentUser.uid + '/online').set(false);
+    // Group modal
+    groupBtn.onclick=async()=>{
+      memberList.innerHTML='';
+      const snap=await db.ref('users').once('value');
+      snap.forEach(c=>{
+        const u=c.val(); if(u.uid===currentUser.uid)return;
+        const div=document.createElement('div');
+        div.className='member-item';
+        div.innerHTML=`<label><input type="checkbox" value="${u.uid}"> ${u.name}</label>`;
+        memberList.appendChild(div);
+      });
+      groupModal.classList.add('active');
+    };
+    window.closeGroupModal=()=> groupModal.classList.remove('active');
+    createGroupBtn.onclick=async()=>{
+      const name=document.getElementById('groupNameInput').value.trim();
+      if(!name)return;
+      const members={ [currentUser.uid]:true };
+      memberList.querySelectorAll('input:checked').forEach(cb=>members[cb.value]=true);
+      const gid=Object.keys(members).sort().join('_');
+      await db.ref('groups/'+gid).set({ name, members, chats:{} });
+      groupModal.classList.remove('active');
+      loadChats();
+    };
+
+    // Search
+    searchInput.addEventListener('input',()=>{
+      const term=searchInput.value.toLowerCase();
+      document.querySelectorAll('.user-item, .group-item').forEach(el=>{
+        el.style.display=el.querySelector('.name').textContent.toLowerCase().includes(term)?'flex':'none';
+      });
     });
   </script>
 </body>
-</html>
+  </html>
