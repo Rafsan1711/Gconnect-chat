@@ -86,6 +86,29 @@
       .chat-section { width: 100%; height: 100vh; display: none; }
       #backBtn { display: block; }
     }
+   
+  #splashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  #splashImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  body.hiddenBody {
+    overflow: hidden;
+  }
   </style>
 </head>
 <body>
@@ -138,6 +161,10 @@
       <button id="createGroupBtn" class="confirm-btn">Create</button>
     </div>
   </div>
+<!-- Splash Screen -->
+<div id="splashScreen">
+  <img id="splashImage" src="" alt="Splash Image">
+</div>
 
   <div id="deleteMenu">
     <button id="deleteForMe">Delete for me</button>
@@ -362,8 +389,57 @@
       db.ref(`${deleteMenu.dataset.path}/${deleteMenu.dataset.key}`).remove();
       deleteMenu.style.display='none';
     };
+groupBtn.onclick = async () => {
+      memberList.innerHTML = '';
+      const snap = await db.ref('users').once('value');
+      snap.forEach(c => {
+        const u = c.val();
+        if (u.uid === currentUser.uid) return;
+        const div = document.createElement('div');
+        div.className = 'member-item';
+        div.innerHTML = `<label><input type="checkbox" value="${u.uid}"> ${u.name}</label>`;
+        memberList.appendChild(div);
+      });
+      groupModal.classList.add('active');
+    };
+    window.closeGroupModal = () => groupModal.classList.remove('active');
+    createGroupBtn.onclick = async () => {
+      const name = document.getElementById('groupNameInput').value.trim();
+      if (!name) return;
+      const members = { [currentUser.uid]: true };
+      memberList.querySelectorAll('input:checked')
+                .forEach(cb => members[cb.value] = true);
+      const groupId = Object.keys(members).sort().join('_');
+      await db.ref(`groups/${groupId}`).set({ name, members });
+      closeGroupModal();
+      loadChats();
+    };
 
+    searchInput.addEventListener('input', () => {
+      const term = searchInput.value.toLowerCase();
+      document.querySelectorAll('.user-item, .group-item')
+        .forEach(el => {
+          el.style.display = el.querySelector('.name')
+            .textContent.toLowerCase().includes(term)
+              ? 'flex' : 'none';
+        });
+    });
     // group creation, search, etc. আপনার আগের কোড মতোই থাকবে
+
+  // Body লুকিয়ে রাখো যেন স্ক্রল না হয়
+  document.body.classList.add("hiddenBody");
+
+  // মোবাইল চেক করে GIF সেট করো
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const splashImage = document.getElementById("splashImage");
+  splashImage.src = isMobile ? "ssml.gif" : "sspc.gif";
+
+  // ৫ সেকেন্ড পরে splash screen লুকিয়ে মূল পেজ দেখাও
+  setTimeout(() => {
+    document.getElementById("splashScreen").style.display = "none";
+    document.body.classList.remove("hiddenBody");
+  }, 5000);
+
   </script>
 </body>
-</html>
+  </html>
