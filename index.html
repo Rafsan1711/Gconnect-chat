@@ -10,6 +10,26 @@
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; }
     .app { display: flex; height: 100%; }
 
+    /* ==== Splash Screen ==== */
+    #splashScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+    }
+    #splashScreen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    body.hidden-scroll {
+      overflow: hidden;
+    }
+
     /* ==== Sidebar ==== */
     .sidebar { width: 30%; background: #242f34; border-right: 1px solid #333; display: flex; flex-direction: column; transition: width .3s; }
     #header { background: #075e54; color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
@@ -51,7 +71,7 @@
     .message .text { margin-bottom: 8px; }
     .time { font-size: .7rem; color: #aaa; position: absolute; bottom: 4px; right: 8px; }
     .status { font-size: .6rem; position: absolute; bottom: 4px; left: 8px; color: #777; }
-    .status.seen { color: #2196F3; } /* Seen text blue */
+    .status.seen { color: #2196F3; }
 
     /* ==== Sender Line with Pics ==== */
     .sender-line { display: flex; align-items: center; margin-bottom: 4px; }
@@ -89,6 +109,11 @@
   </style>
 </head>
 <body>
+  <!-- Splash Screen Overlay -->
+  <div id="splashScreen">
+    <img id="splashImg" src="" alt="Loading...">
+  </div>
+
   <div class="app">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -149,6 +174,16 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
+    // Splash screen logic
+    document.body.classList.add('hidden-scroll');
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    document.getElementById('splashImg').src = isMobile ? 'ssml.gif' : 'sspc.gif';
+    setTimeout(() => {
+      document.getElementById('splashScreen').style.display = 'none';
+      document.body.classList.remove('hidden-scroll');
+    }, 5000);
+
+    // Firebase initialization
     const firebaseConfig = {
       apiKey: "AIzaSyAGs_lp4BbEWyywxRx1DuQMlrKQ2AiuHY0",
       authDomain: "gconnect-387da.firebaseapp.com",
@@ -162,7 +197,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
-    const loginBtn      = document.getElementById('loginBtn'),
+const loginBtn      = document.getElementById('loginBtn'),
           userInfoEl    = document.getElementById('userInfo'),
           userPicEl     = document.getElementById('userPic'),
           searchInput   = document.getElementById('searchInput'),
@@ -362,8 +397,7 @@
       db.ref(`${deleteMenu.dataset.path}/${deleteMenu.dataset.key}`).remove();
       deleteMenu.style.display='none';
     };
-
-    // group creation, search, etc. আপনার আগের কোড মতোই থাকবে
+    
   </script>
 </body>
   </html>
