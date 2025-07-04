@@ -86,29 +86,6 @@
       .chat-section { width: 100%; height: 100vh; display: none; }
       #backBtn { display: block; }
     }
-   
-  #splashScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 100vw;
-    background-color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  }
-
-  #splashImage {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  body.hiddenBody {
-    overflow: hidden;
-  }
   </style>
 </head>
 <body>
@@ -161,10 +138,6 @@
       <button id="createGroupBtn" class="confirm-btn">Create</button>
     </div>
   </div>
-<!-- Splash Screen -->
-<div id="splashScreen">
-  <img id="splashImage" src="" alt="Splash Image">
-</div>
 
   <div id="deleteMenu">
     <button id="deleteForMe">Delete for me</button>
@@ -390,6 +363,7 @@
       deleteMenu.style.display='none';
     };
 
+    // group creation, search, etc. আপনার আগের কোড মতোই থাকবে
   </script>
 </body>
   </html>
