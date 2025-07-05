@@ -8,7 +8,12 @@
   <style>
     /* ==== Reset & Base ==== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; 
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE10+ */
+  user-select: none;         /* Standard */
+         }
     .app { display: flex; height: 100%; }
 
     /* ==== Splash Screen ==== */
@@ -143,6 +148,7 @@
       50% { background-color: #3a4b52; }
       100% { background-color: #2b3a40; }
     }
+    
   </style>
 </head>
 <body>
