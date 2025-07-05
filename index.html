@@ -107,6 +107,42 @@
       .chat-section { width: 100%; height: 100vh; display: none; }
       #backBtn { display: block; }
     }
+    .reply-preview {
+      background: #1d2c32;
+      border-left: 4px solid #25d366;
+      padding: 6px 12px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      color: #ccc;
+      border-radius: 6px;
+      position: relative;
+    }
+    .reply-preview .close-reply {
+      position: absolute;
+      right: 6px;
+      top: 2px;
+      cursor: pointer;
+      color: #999;
+      font-weight: bold;
+    }
+    .reply-container {
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 8px;
+      border-left: 3px solid #25d366;
+      margin-bottom: 6px;
+      color: #aaa;
+      border-radius: 4px;
+    }
+    .message.highlight {
+      background: #2b3a40;
+      animation: pulse 0.8s;
+    }
+    @keyframes pulse {
+      0% { background-color: #2b3a40; }
+      50% { background-color: #3a4b52; }
+      100% { background-color: #2b3a40; }
+    }
   </style>
 </head>
 <body>
@@ -147,6 +183,10 @@
       <div id="messages"></div>
 
       <div class="input-area">
+      <div id="replyPreview" class="reply-preview" style="display:none">
+      <span id="replyText"></span>
+      <span class="close-reply" onclick="cancelReply()">×</span>
+    </div>
         <input type="text" id="messageInput" placeholder="Type a message..." disabled />
         <button id="sendBtn" disabled>✈️</button>
       </div>
@@ -399,6 +439,89 @@ const loginBtn      = document.getElementById('loginBtn'),
       deleteMenu.style.display='none';
     };
     
+    let replyTo = null;
+
+    function handleReplyClick(msgData, msgKey) {
+      replyTo = { key: msgKey, text: msgData.text, senderName: msgData.senderName };
+      document.getElementById('replyText').textContent = `${msgData.senderName}: ${msgData.text.slice(0, 50)}`;
+      document.getElementById('replyPreview').style.display = 'block';
+    }
+
+    function cancelReply() {
+      replyTo = null;
+      document.getElementById('replyPreview').style.display = 'none';
+    }
+
+    function scrollToMessage(key) {
+      const msg = document.querySelector(`[data-key="${key}"]`);
+      if (msg) {
+        msg.classList.add('highlight');
+        msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => msg.classList.remove('highlight'), 1200);
+      }
+    }
+
+    function loadMessages() {
+      const path = isGroup ? `groups/${currentChatId}/chats` : `chats/${currentChatId}`;
+      db.ref(path).off();
+      db.ref(path).on('value', snap => {
+        messagesEl.innerHTML = '';
+        snap.forEach(mSnap => {
+          const m = mSnap.val(),
+                mine = (m.senderId === currentUser.uid);
+          if (!mine && m.status !== 'Seen') {
+            db.ref(`${path}/${mSnap.key}`).update({ status: 'Seen' });
+            m.status = 'Seen';
+          }
+          const div = document.createElement('div');
+          div.className = `message ${mine ? 'outgoing' : 'incoming'}`;
+          div.dataset.key = mSnap.key;
+          div.dataset.path = path;
+
+          let replyHtml = '';
+          if (m.replyTo) {
+            replyHtml = `<div class="reply-container" onclick="scrollToMessage('${m.replyTo.key}')">${m.replyTo.senderName}: ${m.replyTo.text}</div>`;
+          }
+
+          div.innerHTML = `
+            <div class="sender-line ${mine ? 'right' : ''}">
+              ${!mine ? `<img class="sender-pic" src="${m.senderPic || ''}" />` : ''}
+              <div class="sender">${m.senderName}</div>
+              ${mine ? `<img class="sender-pic" src="${m.senderPic || ''}" />` : ''}
+            </div>
+            ${replyHtml}
+            <div class="text">${m.text || '[Image]'}</div>
+            <div class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+            <div class="status ${m.status === 'Seen' ? 'seen' : ''}">${m.status || ''}</div>
+          `;
+
+          div.ondblclick = () => handleReplyClick(m, mSnap.key);
+          attachDelete(div);
+          messagesEl.appendChild(div);
+        });
+        messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+      });
+    }
+
+    sendBtn.onclick = () => {
+      const txt = messageInput.value.trim();
+      if (!txt) return;
+      const msg = {
+        senderId: currentUser.uid,
+        senderName: currentUser.displayName,
+        senderPic: currentUser.photoURL || '',
+        text: txt,
+        timestamp: Date.now(),
+        status: 'Sent'
+      };
+      if (replyTo) msg.replyTo = replyTo;
+
+      const ref = db.ref(isGroup ? `groups/${currentChatId}/chats` : `chats/${currentChatId}`).push(msg);
+      messageInput.value = '';
+      cancelReply();
+      db.ref('typing/' + currentChatId + '/' + currentUser.uid).set(false);
+      ref.then(r => r.update({ status: 'Delivered' }));
+    };
   </script>
 </body>
   </html>
