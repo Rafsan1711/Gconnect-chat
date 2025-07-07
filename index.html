@@ -87,25 +87,6 @@
     .reply-container{background:rgba(255,255,255,0.05);padding:4px 8px;border-left:3px solid #25d366;margin-bottom:6px;color:#aaa;border-radius:4px;cursor:pointer;}
     .message.highlight{animation:pulse 0.8s;background:#2b3a40;}
     @keyframes pulse{0%{background:#2b3a40;}50%{background:#3a4b52;}100%{background:#2b3a40;}}
-    .code-block {
-  background: #2a2f32;
-  padding: 10px;
-  border-radius: 6px;
-  overflow: auto;
-  font-family: monospace;
-  color: #e1e1e1;
-}
-.html-preview {
-  margin: 10px 0;
-}
-.html-preview iframe {
-  width: 100%;
-  height: 2000px;
-  border: 1px solid #333;
-  border-radius: 4px;
-  background: #fff;
-}
-
   </style>
 </head>
 <body>
@@ -166,22 +147,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function escapeHtmlSrcDoc(text) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-
     // Splash
     document.body.classList.add('hidden-scroll');
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -294,84 +259,35 @@ function escapeHtmlSrcDoc(text) {
     };
 
     // Messages
-function loadMessages() {
-  const path = isGroup ? `groups/${currentChatId}/chats` : `chats/${currentChatId}`;
-  db.ref(path).off();
-  db.ref(path).on('value', snap => {
-    messagesEl.innerHTML = '';
-    snap.forEach(mSnap => {
-      const m = mSnap.val();
-      const mine = (m.senderId === currentUser.uid);
-
-      // যদি অন্যের মেসেজ হয় আর এখনও Seen না হয়
-      if (!mine && m.status !== 'Seen') {
-        db.ref(`${path}/${mSnap.key}`).update({ status: 'Seen' });
-        m.status = 'Seen';
-      }
-
-      const div = document.createElement('div');
-      div.className = `message ${mine ? 'outgoing' : 'incoming'}`;
-      div.dataset.key = mSnap.key;
-      div.dataset.path = path;
-
-      // যদি রিপ্লাই থাকে
-      let replyHtml = '';
-      if (m.replyTo) {
-        replyHtml = `<div class="reply-container" onclick="scrollToMessage('${m.replyTo.key}')">
-          ${m.replyTo.senderName}: ${m.replyTo.text}
-        </div>`;
-      }
-
-      // 🔥 মেসেজ কন্টেন্ট চেক করা হচ্ছে
-      let messageHtml = '';
-      const text = m.text || '[Image]';
-
-      if (/<[^>]+>/.test(text)) {
-        // যদি HTML detect হয় ➜ iframe preview
-        messageHtml = `
-          <div class="html-preview">
-            <iframe sandbox="allow-same-origin" srcdoc="${escapeHtmlSrcDoc(text)}"></iframe>
-          </div>
-        `;
-      } else if (/(https?:\/\/[^\s]+)/.test(text)) {
-        // যদি লিংক detect হয় ➜ clickable link
-        const linked = text.replace(
-          /(https?:\/\/[^\s]+)/g,
-          '<a href="$1" target="_blank" style="color:#25d366;">$1</a>'
-        );
-        messageHtml = `<div class="link-message">${linked}</div>`;
-      } else {
-        // সাধারণ টেক্সট
-        messageHtml = `<div class="text">${escapeHtml(text)}</div>`;
-      }
-
-      // ✨ পুরো মেসেজ HTML বানানো হচ্ছে
-      div.innerHTML = `
-        <div class="sender-line ${mine ? 'right' : ''}">
-          ${!mine ? `<img class="sender-pic" src="${m.senderPic || ''}"/>` : ``}
-          <div class="sender">${m.senderName}</div>
-          ${mine ? `<img class="sender-pic" src="${m.senderPic || ''}"/>` : ``}
-        </div>
-        ${replyHtml}
-        ${messageHtml}
-        <div class="time">
-          ${new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </div>
-        <div class="status ${m.status === 'Seen' ? 'seen' : ''}">
-          ${m.status || ''}
-        </div>
-      `;
-
-      div.ondblclick = () => handleReplyClick(m, mSnap.key);
-      attachDelete(div);
-      messagesEl.appendChild(div);
-    });
-    messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
-  });
-}
-
-
-    
+    function loadMessages(){
+      const path = isGroup? `groups/${currentChatId}/chats` : `chats/${currentChatId}`;
+      db.ref(path).off();
+      db.ref(path).on('value',snap=>{
+        messagesEl.innerHTML='';
+        snap.forEach(mSnap=>{
+          const m=mSnap.val(), mine=(m.senderId===currentUser.uid);
+          if(!mine&&m.status!=='Seen'){ db.ref(`${path}/${mSnap.key}`).update({ status:'Seen' }); m.status='Seen'; }
+          const div=document.createElement('div');
+          div.className=`message ${mine?'outgoing':'incoming'}`; div.dataset.key=mSnap.key; div.dataset.path=path;
+          let replyHtml='';
+          if(m.replyTo) replyHtml=`<div class="reply-container" onclick="scrollToMessage('${m.replyTo.key}')">${m.replyTo.senderName}: ${m.replyTo.text}</div>`;
+          div.innerHTML=`
+            <div class="sender-line ${mine?'right':''}">
+              ${!mine?`<img class="sender-pic" src="${m.senderPic||''}"/>`:``}
+              <div class="sender">${m.senderName}</div>
+              ${mine?`<img class="sender-pic" src="${m.senderPic||''}"/>`:``}
+            </div>
+            ${replyHtml}
+            <div class="text">${m.text||'[Image]'}</div>
+            <div class="time">${new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="status ${m.status==='Seen'?'seen':''}">${m.status||''}</div>`;
+          div.ondblclick=()=>handleReplyClick(m,mSnap.key);
+          attachDelete(div);
+          messagesEl.appendChild(div);
+        });
+        messagesEl.scrollTo({ top:messagesEl.scrollHeight, behavior:'smooth' });
+      });
+    }
 
     messageInput.addEventListener('input',()=>{
       db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(true);
