@@ -95,6 +95,16 @@
   font-family: monospace;
   color: #e1e1e1;
 }
+.html-preview {
+  margin: 10px 0;
+}
+.html-preview iframe {
+  width: 100%;
+  height: 200px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: #fff;
+}
 
   </style>
 </head>
@@ -156,14 +166,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    function escapeHtml(unsafe) {
-  return unsafe
+function escapeHtml(text) {
+  return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/>/g, "&gt;");
 }
+
+function escapeHtmlSrcDoc(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 
     // Splash
     document.body.classList.add('hidden-scroll');
@@ -310,10 +327,14 @@ function loadMessages() {
       const text = m.text || '[Image]';
 
       if (/<[^>]+>/.test(text)) {
-        // যদি HTML কোড detect হয়
-        messageHtml = `<pre class="code-block">${escapeHtml(text)}</pre>`;
+        // যদি HTML detect হয় ➜ iframe preview
+        messageHtml = `
+          <div class="html-preview">
+            <iframe sandbox="allow-same-origin" srcdoc="${escapeHtmlSrcDoc(text)}"></iframe>
+          </div>
+        `;
       } else if (/(https?:\/\/[^\s]+)/.test(text)) {
-        // যদি লিংক detect হয়
+        // যদি লিংক detect হয় ➜ clickable link
         const linked = text.replace(
           /(https?:\/\/[^\s]+)/g,
           '<a href="$1" target="_blank" style="color:#25d366;">$1</a>'
@@ -348,6 +369,7 @@ function loadMessages() {
     messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
   });
 }
+
 
     
 
