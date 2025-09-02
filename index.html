@@ -1,87 +1,168 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GConnect Chat App</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
-    /* (আপনার আগের স্টাইল বজায় রেখে একটু সংক্ষিপ্তকরণ) */
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#121c21;color:#e1e1e1;height:100vh}
-    .app{display:flex;height:100%}
-    .sidebar{width:30%;background:#242f34;border-right:1px solid #333;display:flex;flex-direction:column;padding-bottom:12px}
-    #header{background:#075e54;color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center}
-    #loginBtn{margin:12px;padding:12px;background:#25d366;border:none;border-radius:4px;cursor:pointer;color:#000}
-    #userInfo{margin:0 12px 12px;font-size:.9rem;color:#ccc}
-    #searchInput{margin:0 12px;padding:8px;width:calc(100% - 24px);border-radius:20px;border:1px solid #333;background:#121c21;color:#e1e1e1}
-    .list-title{margin:12px;font-weight:bold;color:#ccc}
-    .chatlist{flex:1;overflow-y:auto;margin-top:8px}
-    .user-item{display:flex;align-items:center;padding:12px;border-bottom:1px solid #333;cursor:pointer}
-    .user-item:hover{background:#2a343b}
-    .avatar{width:36px;height:36px;border-radius:50%;background:#555;margin-right:12px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
-    .avatar img{width:100%;height:100%;object-fit:cover}
-    .status-dot{width:10px;height:10px;border-radius:50%;position:absolute;bottom:2px;right:2px;border:2px solid #242f34}
-    .online{background:#00e676}.offline{background:#757575}
-    .name{font-size:1rem;flex:1}
+    /* ==== Reset & Base ==== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; }
+    .app { display: flex; height: 100%; }
 
-    .chat-section{width:70%;display:flex;flex-direction:column;background:#111b21}
-    #chatHeader{background:#498fe0;color:#fff;padding:12px 16px;display:flex;align-items:center;position:relative}
-    #chatHeader .avatar{width:32px;height:32px;border-radius:50%;background:#555;margin-right:12px;overflow:hidden}
-    #messages{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column}
-    .message{max-width:70%;margin-bottom:12px;padding:10px 12px;border-radius:8px;word-wrap:break-word}
-    .incoming{background:#2a2f32;align-self:flex-start;border-radius:0 8px 8px 8px}
-    .outgoing{background:#056162;align-self:flex-end;border-radius:8px 0 8px 8px;color:#e1e1e1}
-    .sender-line{display:flex;align-items:center;margin-bottom:6px}
-    .sender{font-size:.85rem;color:#ccc;margin-right:8px}
-    .sender-pic{width:24px;height:24px;border-radius:50%}
-    .input-area{display:flex;padding:12px;background:#2a343b}
-    #messageInput{flex:1;padding:10px;border-radius:20px;border:1px solid #333;background:#121c21;color:#e1e1e1}
-    #sendBtn{margin-left:8px;width:40px;height:40px;border:none;border-radius:50%;background:#128c7e;color:#fff;font-size:1.1rem;cursor:pointer}
+    /* ==== Splash Screen ==== */
+    #splashScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
+      display: flex; align-items: center; justify-content: center; z-index: 99999; }
+    #splashScreen img { width: 100%; height: 100%; object-fit: cover; }
+    body.hidden-scroll { overflow: hidden; }
 
-    .reply-preview{background:#1d2c32;border-left:4px solid #25d366;padding:6px 12px;margin-bottom:6px;color:#ccc;border-radius:6px}
-    @media (max-width:600px){ .sidebar{width:100%;height:100vh;border-bottom:1px solid #333} .chat-section{width:100%;height:100vh;display:none} #backBtn{display:block} }
+    /* ==== Sidebar ==== */
+    .sidebar { width: 30%; background: #242f34; border-right: 1px solid #333; flex-direction: column; display: flex; }
+    #header { background: #075e54; color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    #header .header-right { display: flex; align-items: center; }
+    #header button { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    #userPic { width: 36px; height: 36px; border-radius: 50%; margin-left: 12px; display: none; }
+    #loginBtn { margin: 12px; padding: 12px; background: #25d366; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+    #userInfo { margin: 0 12px 12px; font-size: .9rem; color: #ccc; }
+    #searchInput { margin: 0 12px; padding: 8px; width: calc(100% - 24px); border-radius: 20px; border: 1px solid #333; background: #121c21; color: #e1e1e1; }
+    .list-title { margin: 12px; font-weight: bold; color: #ccc; }
+    .chatlist { flex: 1; overflow-y: auto; margin-top: 8px; }
+    .user-item, .group-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #333; cursor: pointer; }
+    .user-item:hover, .group-item:hover { background: #2a343b; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #555; margin-right: 12px; position: relative; overflow: hidden; display:flex;align-items:center;justify-content:center; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .status-dot { width:10px; height:10px; border-radius:50%; position:absolute; bottom:2px; right:2px; border:2px solid #242f34; }
+    .online { background: #00e676; } .offline { background: #757575; }
+    .name { font-size: 1rem; flex: 1; }
+
+    /* ==== Chat Section ==== */
+    .chat-section { width: 70%; display: flex; flex-direction: column; background: #111b21; }
+    #chatHeader { background: #498fe0; color: #fff; padding: 12px 16px; display: flex; align-items: center; position: relative; }
+    #backBtn { display: none; margin-right: 12px; background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+    #chatHeader .avatar { width: 32px; height: 32px; border-radius: 50%; background: #555; margin-right: 12px; overflow: hidden; display:flex;align-items:center;justify-content:center; }
+    #chatHeader .avatar img { width:100%; height:100%; object-fit:cover; }
+    #chatHeader span { font-weight: bold; flex: 1; }
+    #typingIndicator { visibility: hidden; display: inline-flex; align-items: center; margin-left: 8px; }
+    #typingIndicator .dot { width:6px; height:6px; background:#fff; border-radius:50%; margin:0 1px; animation:bounce 1s infinite; }
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-4px);} }
+
+    #messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; }
+    .message { max-width: 70%; margin-bottom: 16px; padding: 10px 12px 24px; position: relative; border-radius: 8px; word-wrap: break-word; }
+    .incoming { background: #2a2f32; align-self: flex-start; border-radius: 0 8px 8px 8px; }
+    .outgoing { background: #056162; align-self: flex-end; border-radius: 8px 0 8px 8px; color: #e1e1e1; }
+    .time { font-size:.7rem; color:#aaa; position:absolute; bottom:4px; right:8px; }
+    .status { font-size:.6rem; position:absolute; bottom:4px; left:8px; color:#777; }
+    .status.seen { color:#2196F3; }
+
+    .sender-line { display:flex; align-items:center; margin-bottom:4px; }
+    .sender-line.right { justify-content:flex-end; }
+    .sender { font-size:.75rem; font-weight:bold; color:#ccc; }
+    .sender-pic { width:24px; height:24px; border-radius:50%; display:inline-block; }
+
+    .input-area { display:flex; padding:12px; background:#2a343b; }
+    #messageInput { flex:1; padding:10px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; }
+    #sendBtn { margin-left:8px; width:40px; height:40px; border:none; border-radius:50%; background:#128c7e; color:#fff; font-size:1.2rem; cursor:pointer; }
+
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; }
+    .modal.active { display:flex; }
+    .modal-content { background:#242f34; border-radius:8px; padding:20px; width:90%; max-width:400px; box-shadow:0 2px 10px rgba(0,0,0,0.5); text-align:center; color:#e1e1e1; position:relative; }
+    .close-btn { position:absolute; top:12px; right:16px; border:none; background:transparent; font-size:1.2rem; color:#e1e1e1; cursor:pointer; }
+    .member-list { max-height:200px; overflow-y:auto; margin-bottom:12px; text-align:left; }
+    .member-item { margin:6px 0; }
+
+    #deleteMenu { position:absolute; display:none; background:#242f34; box-shadow:0 2px 6px rgba(0,0,0,0.5); border-radius:4px; z-index:1000; }
+    #deleteMenu button { width:100%; padding:8px 12px; border:none; background:none; text-align:left; color:#e1e1e1; cursor:pointer; }
+    #deleteMenu button:hover { background:#2a343b; }
+    
+    @media (max-width:600px){
+      .app{flex-direction:column;}
+      .sidebar{width:100%;height:100vh;border-bottom:1px solid #333;}
+      .chat-section{width:100%;height:100vh;display:none;}
+      #backBtn{display:block;}
+    }
+
+    .reply-preview{background:#1d2c32;border-left:4px solid #25d366;padding:6px 12px;margin-bottom:6px;color:#ccc;position:relative;border-radius:6px;}
+    .reply-preview .close-reply{position:absolute;top:2px;right:6px;cursor:pointer;color:#999;}
+    .reply-container{background:rgba(255,255,255,0.05);padding:4px 8px;border-left:3px solid #25d366;margin-bottom:6px;color:#aaa;border-radius:4px;cursor:pointer;}
+    .message.highlight{animation:pulse 0.8s;background:#2b3a40;}
+    @keyframes pulse{0%{background:#2b3a40;}50%{background:#3a4b52;}100%{background:#2b3a40;}}
   </style>
 </head>
 <body>
+  <div id="splashScreen"><img id="splashImg" src="" alt="Loading..."></div>
   <div class="app">
     <div class="sidebar">
-      <div id="header">GConnect <div style="display:flex;align-items:center"></div></div>
+      <div id="header">
+        GConnect
+        <div class="header-right">
+          <img id="userPic" alt="Profile" />
+          <button id="groupBtn">+</button>
+        </div>
+      </div>
       <button id="loginBtn">Sign in with Google</button>
       <div id="userInfo"></div>
-      <input id="searchInput" placeholder="Search chats..." />
+      <input id="searchInput" type="text" placeholder="Search chats..." />
       <div class="list-title">Chats</div>
       <div id="chatList" class="chatlist"></div>
     </div>
-
     <div class="chat-section">
       <div id="chatHeader">
-        <div class="avatar" id="chatHeaderAvatar"></div>
+        <button id="backBtn">&larr;</button>
+        <div class="avatar"></div>
         <span id="chatName">Select a chat</span>
+        <div id="typingIndicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
       </div>
       <div id="messages"></div>
       <div class="input-area">
-        <div id="replyPreview" class="reply-preview" style="display:none"><span id="replyText"></span><button onclick="cancelReply()" style="margin-left:8px">×</button></div>
-        <input id="messageInput" placeholder="Type a message..." disabled />
-        <button id="sendBtn" disabled>✈</button>
+        <div id="replyPreview" class="reply-preview" style="display:none">
+          <span id="replyText"></span>
+          <span class="close-reply" onclick="cancelReply()">×</span>
+        </div>
+        <input id="messageInput" type="text" placeholder="Type a message..." disabled />
+        <button id="sendBtn" disabled>✈️</button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase client -->
+  <!-- Create Group Modal -->
+  <div id="groupModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeGroupModal()">&times;</button>
+      <h2>Create Group</h2>
+      <input id="groupNameInput" placeholder="Group name" style="width:100%;padding:8px;margin-bottom:12px;border:1px solid #333;border-radius:4px;background:#121c21;color:#e1e1e1;" />
+      <div id="memberList" class="member-list"></div>
+      <button id="createGroupBtn">Create</button>
+    </div>
+  </div>
+
+  <!-- Delete Menu -->
+  <div id="deleteMenu">
+    <button id="deleteForMe">Delete for me</button>
+    <button id="deleteForEveryone">Delete for everyone</button>
+  </div>
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
   <script>
-    /********** CONFIGURE THIS (replace SERVER_BASE with your Render backend URL) **********/
-    const SERVER_BASE = "https://gconnect-chat.onrender.com"; // <<--- change this to your Render URL
-    /***************************************************************************************/
-    // Inline "verified" SVG as data URL so no external image files are needed
+    /***** CONFIGURE: replace with your Render backend URL (no trailing slash) *****/
+    const SERVER_BASE = "https://gconnect-chat.onrender.com";
+    /***************************************************************************/
+
+    // small inline verified svg so no external file needed
     const VERIFIED_DATA_URL = 'data:image/svg+xml;utf8,' + encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2DA44E"/><path d="M9.5 12.8l1.9 1.9 4.1-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
     );
 
-    // Firebase client config (your existing config - replace if you use another project)
+    // Splash
+    document.body.classList.add('hidden-scroll');
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    document.getElementById('splashImg').src = isMobile ? 'ssml.gif' : 'sspc.gif';
+    setTimeout(()=>{ document.getElementById('splashScreen').style.display='none'; document.body.classList.remove('hidden-scroll'); },5000);
+
+    // Firebase init (your existing config)
     const firebaseConfig = {
       apiKey: "AIzaSyAGs_lp4BbEWyywxRx1DuQMlrKQ2AiuHY0",
       authDomain: "gconnect-387da.firebaseapp.com",
@@ -92,141 +173,311 @@
       appId: "1:156103622971:web:fa6a2f8f21c9a24f6bb71e",
       measurementId: "G-BR9WKZLV1D"
     };
-
-    // initialize
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
     // Elements
-    const loginBtn = document.getElementById('loginBtn');
-    const userInfoEl = document.getElementById('userInfo');
-    const chatList = document.getElementById('chatList');
-    const chatNameEl = document.getElementById('chatName');
-    const chatHeaderAvatar = document.getElementById('chatHeaderAvatar');
-    const messagesEl = document.getElementById('messages');
-    const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
+    const loginBtn = document.getElementById('loginBtn'),
+          userInfoEl = document.getElementById('userInfo'),
+          userPicEl = document.getElementById('userPic'),
+          chatList = document.getElementById('chatList'),
+          groupBtn = document.getElementById('groupBtn'),
+          groupModal = document.getElementById('groupModal'),
+          memberList = document.getElementById('memberList'),
+          createGroupBtn = document.getElementById('createGroupBtn'),
+          deleteMenu = document.getElementById('deleteMenu'),
+          delForMe = document.getElementById('deleteForMe'),
+          delForAll = document.getElementById('deleteForEveryone'),
+          sidebar = document.querySelector('.sidebar'),
+          chatSection = document.querySelector('.chat-section'),
+          chatNameEl = document.getElementById('chatName'),
+          chatHeaderAv = document.querySelector('#chatHeader .avatar'),
+          backBtn = document.getElementById('backBtn'),
+          messagesEl = document.getElementById('messages'),
+          messageInput = document.getElementById('messageInput'),
+          sendBtn = document.getElementById('sendBtn'),
+          typingEl = document.getElementById('typingIndicator');
 
+    // state
     let currentUser = null;
     let currentChatId = null;
+    let isGroup = false;
+    let chatUsers = [];
+    let typingTimeout = null;
     let replyTo = null;
 
+    // Keep track of active message path to avoid re-attaching listeners
+    let activeMessagePath = null;
+
+    // Helpers
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
+
     // Sign-in
-    loginBtn.onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    auth.onAuthStateChanged(user => {
-      if (user) {
+    loginBtn.onclick = ()=> auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    auth.onAuthStateChanged(user=>{
+      if(user){
         currentUser = user;
-        loginBtn.style.display = 'none';
+        loginBtn.style.display='none';
         userInfoEl.textContent = `Logged in as ${user.displayName}`;
-        if (user.photoURL) {
-          const img = document.createElement('img'); img.src = user.photoURL; img.style.width='28px'; img.style.height='28px'; img.style.borderRadius='50%'; img.style.marginRight='8px';
-          userInfoEl.prepend(img);
-        }
-        // write presence
-        db.ref('users/' + user.uid).set({ uid: user.uid, name: user.displayName, photoURL: user.photoURL || '', online: true });
-        db.ref('users/' + user.uid + '/online').onDisconnect().set(false);
+        if(user.photoURL){ userPicEl.src=user.photoURL; userPicEl.style.display='block'; }
+        // presence
+        db.ref('users/'+user.uid).set({ uid:user.uid, name:user.displayName, photoURL:user.photoURL||'', online:true });
+        db.ref('users/'+user.uid+'/online').onDisconnect().set(false);
         loadChats();
       } else {
         currentUser = null;
-        loginBtn.style.display = 'inline-block';
+        loginBtn.style.display='block';
         userInfoEl.textContent = '';
-        loadChats(); // still show bot entry even if not logged in
+        loadChats(); // show chatlist (bot + any public) even if not logged in
       }
     });
+    window.addEventListener('beforeunload',()=>{ if(currentUser) db.ref('users/'+currentUser.uid+'/online').set(false); });
 
-    // Load users from DB & show in chatlist, then add bot
-    function loadChats() {
+    /* -----------------------------
+       CHATLIST / GROUPS (fix duplicates)
+       - Always call off() before on()
+       - Avoid adding duplicate bot item
+       ----------------------------- */
+    function loadChats(){
+      // remove previous listener to avoid duplicate events
+      try { db.ref('users').off('value'); } catch(e){}
       chatList.innerHTML = '';
-      db.ref('users').once('value').then(snap => {
-        snap.forEach(uSnap => {
-          const u = uSnap.val();
-          if (!u || !u.uid) return;
-          if (currentUser && u.uid === currentUser.uid) return; // skip yourself
-          const div = document.createElement('div');
-          div.className = 'user-item';
-          div.dataset.uid = u.uid;
-          div.innerHTML = `<div class="avatar"><img src="${u.photoURL||''}" /><span class="status-dot ${u.online?'online':'offline'}"></span></div><div class="name">${u.name}</div>`;
-          div.onclick = () => openChat([u]);
+
+      db.ref('users').on('value', snap=>{
+        // clear and re-render
+        chatList.innerHTML = '';
+        snap.forEach(c=>{
+          const u = c.val();
+          if(!u || !u.uid) return;
+          if(currentUser && u.uid === currentUser.uid) return; // skip self
+          // prevent duplicated elements by using data-uid uniqueness
+          if (chatList.querySelector(`[data-uid="${u.uid}"]`)) return;
+          const div=document.createElement('div');
+          div.className='user-item'; div.dataset.uid=u.uid;
+          div.innerHTML=`
+            <div class="avatar">
+              <img src="${u.photoURL||''}"/><span class="status-dot ${u.online?'online':'offline'}"></span>
+            </div>
+            <div class="name">${escapeHtml(u.name)}</div>`;
+          div.onclick=()=>openChat([u]);
           chatList.appendChild(div);
         });
-        // add bot AFTER listing other users
+        // load groups after users, ensuring groups listener not duplicated
+        loadGroups();
+        // ensure bot appears once, at top
         addGconnectBot();
-      }).catch(err=>{
-        console.error('loadChats error', err);
+      }, err=>{
+        console.error('users.on error', err);
+        // still ensure bot is present
+        loadGroups();
         addGconnectBot();
       });
     }
 
-    // Add custom bot entry
-    function addGconnectBot() {
-      if (document.querySelector('[data-uid="gconnect_bot"]')) return;
+    function loadGroups(){
+      try { db.ref('groups').off('value'); } catch(e){}
+      db.ref('groups').on('value', snap=>{
+        // remove existing group items to avoid duplicates
+        Array.from(chatList.querySelectorAll('.group-item')).forEach(el=>el.remove());
+        snap.forEach(gSnap=>{
+          const g = gSnap.val();
+          if(!g || !g.members) return;
+          if(!currentUser || !(currentUser.uid in g.members)) return; // show only groups where current user is member
+          const div=document.createElement('div'); div.className='group-item'; div.dataset.gid=g.id;
+          div.innerHTML=`<div class="avatar"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;">👥</div></div><div class="name">${escapeHtml(g.name)}</div>`;
+          div.onclick=()=>{ const users = Object.entries(g.members).filter(([uid])=>uid!==currentUser.uid).map(([uid,name])=>({uid,name})); openChat(users, g.id); };
+          chatList.appendChild(div);
+        });
+      }, err=>{
+        console.error('groups.on error', err);
+      });
+    }
+
+    /* -----------------------------
+       GCONNECT BOT (custom account)
+       - single entry, uses VERIFIED_DATA_URL
+       ----------------------------- */
+    function addGconnectBot(){
+      if (chatList.querySelector('[data-uid="gconnect_bot"]')) return;
       const div = document.createElement('div');
       div.className = 'user-item';
       div.dataset.uid = 'gconnect_bot';
       div.innerHTML = `<div class="avatar"><img src="${VERIFIED_DATA_URL}" /><span class="status-dot online"></span></div><div class="name">GConnect</div>`;
       div.onclick = () => openGconnectChat();
+      // put at top
       chatList.insertBefore(div, chatList.firstChild);
     }
 
-    // Open normal one-on-one chat
-    function openChat(users, gid = null) {
-      const other = users[0];
-      currentChatId = gid || [ (currentUser ? currentUser.uid : 'anon'), other.uid ].sort().join('_');
-      chatNameEl.textContent = other.name;
-      chatHeaderAvatar.innerHTML = `<img src="${other.photoURL||VERIFIED_DATA_URL}" style="width:32px;height:32px;border-radius:50%"/>`;
+    /* -----------------------------
+       OPEN CHAT (one-on-one or group)
+       - ensures listeners are attached once and messages deduplicated
+       ----------------------------- */
+    function openChat(users, gid=null){
+      isGroup = users.length > 1;
+      // build chatUsers properly
+      chatUsers = [...users];
+      if(currentUser) chatUsers.push({ uid: currentUser.uid, name: currentUser.displayName });
+
+      currentChatId = gid || chatUsers.map(u=>u.uid).sort().join('_');
+
+      if(isGroup){
+        chatNameEl.textContent = 'Group: ' + users.map(u=>u.name).join(', ');
+        chatHeaderAv.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;">👥</div>`;
+      } else {
+        const other = users[0];
+        chatNameEl.textContent = other.name;
+        chatHeaderAv.innerHTML = `<img src="${other.photoURL||''}"/><span class="status-dot ${other.online?'online':'offline'}"></span>`;
+      }
+
+      if(window.innerWidth <= 600){ sidebar.style.display='none'; chatSection.style.display='flex'; }
+      backBtn.style.display = 'block';
       messageInput.disabled = false; sendBtn.disabled = false;
-      loadMessages();
+
+      attachTypingListener(currentChatId);
+      loadMessages(currentChatId, isGroup);
     }
 
-    // Open bot chat
-    function openGconnectChat() {
-      currentChatId = [ (currentUser ? currentUser.uid : 'anon'), 'gconnect_bot' ].sort().join('_');
+    function openGconnectChat(){
+      // stable chat id between current user and bot
+      const uid = currentUser ? currentUser.uid : 'anon';
+      currentChatId = [uid, 'gconnect_bot'].sort().join('_');
+      chatUsers = [{ uid: 'gconnect_bot', name: 'GConnect' }, ...(currentUser ? [{ uid: currentUser.uid, name: currentUser.displayName }] : [])];
       chatNameEl.textContent = 'GConnect';
-      chatHeaderAvatar.innerHTML = `<img src="${VERIFIED_DATA_URL}" style="width:32px;height:32px;border-radius:50%"/>`;
+      chatHeaderAv.innerHTML = `<img src="${VERIFIED_DATA_URL}"/>`;
+      if(window.innerWidth <= 600){ sidebar.style.display='none'; chatSection.style.display='flex'; }
+      backBtn.style.display = 'block';
       messageInput.disabled = false; sendBtn.disabled = false;
-      loadMessages();
+      attachTypingListener(currentChatId);
+      loadMessages(currentChatId, false);
     }
 
-    // Load messages
-    function loadMessages() {
+    backBtn.onclick = () => {
+      if(window.innerWidth <= 600){ sidebar.style.display='flex'; chatSection.style.display='none'; }
+      backBtn.style.display = 'none';
       messagesEl.innerHTML = '';
-      const path = `chats/${currentChatId}`;
-      db.ref(path).off();
-      db.ref(path).on('value', snap => {
-        messagesEl.innerHTML = '';
-        snap.forEach(mSnap => {
-          const m = mSnap.val();
-          const mine = currentUser && m.senderId === currentUser.uid;
-          const div = document.createElement('div');
-          div.className = 'message ' + (mine ? 'outgoing' : 'incoming');
-          div.innerHTML = `<div class="sender-line"><div class="sender">${escapeHtml(m.senderName)}</div></div><div>${escapeHtml(m.text||'')}</div>`;
-          messagesEl.appendChild(div);
-        });
-        messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+      messageInput.value = '';
+      messageInput.disabled = true;
+      sendBtn.disabled = true;
+      typingEl.style.visibility = 'hidden';
+      if(currentUser && currentChatId) db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+      // detach message listener
+      detachMessageListener();
+      activeMessagePath = null;
+    };
+
+    // Typing indicator listener (safe attach/detach)
+    function attachTypingListener(path){
+      try { db.ref('typing/'+path).off(); } catch(e){}
+      if(!currentUser) return;
+      db.ref('typing/'+path).on('value', snap=>{
+        const d = snap.val() || {};
+        const someone = Object.keys(d).some(uid => uid !== currentUser.uid && d[uid]);
+        typingEl.style.visibility = someone ? 'visible' : 'hidden';
       });
     }
 
-    function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
+    /* -----------------------------
+       LOAD MESSAGES (robust dedupe)
+       - ensures we do not attach multiple listeners
+       - renders messages in stable order (by timestamp)
+       - prevents duplicate DOM entries even if multiple events fire
+       ----------------------------- */
+    function detachMessageListener(){
+      if(activeMessagePath){
+        try { db.ref(activeMessagePath).off(); } catch(e){}
+        activeMessagePath = null;
+      }
+    }
 
-    // send message: behaves normally for regular chats; for bot chat it calls backend API then pushes bot reply
-    sendBtn.onclick = async () => {
-      const txt = messageInput.value.trim(); if(!txt) return;
-      if(!currentUser){ alert('Please sign in with Google to chat.'); return; }
+    function loadMessages(chatId, forGroup){
+      const path = forGroup ? `groups/${chatId}/chats` : `chats/${chatId}`;
 
-      const path = `chats/${currentChatId}`;
-      const msg = { senderId: currentUser.uid, senderName: currentUser.displayName, senderPic: currentUser.photoURL||'', text: txt, timestamp: Date.now(), status: 'Sent' };
-      const ref = await db.ref(path).push(msg);
-      messageInput.value = '';
+      // If listener already attached to same path, first detach then reattach (safe)
+      try { db.ref(path).off(); } catch(e){}
+      activeMessagePath = path;
 
-      // if this is gconnect_bot chat -> call backend proxy
-      if (currentChatId.includes('gconnect_bot')) {
-        // show a local temporary "typing" message
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'message incoming';
-        typingDiv.textContent = 'GConnect is typing...';
-        messagesEl.appendChild(typingDiv);
+      // We'll maintain order and dedupe using message keys
+      db.ref(path).on('value', snap=>{
+        const messages = [];
+        const seen = new Set();
+        snap.forEach(mSnap=>{
+          const key = mSnap.key;
+          if(seen.has(key)) return; // skip duplicate key if any
+          seen.add(key);
+          const m = mSnap.val();
+          // some safety: require timestamp or text
+          messages.push({ key, ...m });
+        });
+
+        // sort by timestamp ascending (older first)
+        messages.sort((a,b)=> (a.timestamp||0) - (b.timestamp||0) );
+
+        // render: clear and render once (safe and idempotent)
+        messagesEl.innerHTML = '';
+        for(const m of messages){
+          const mine = (currentUser && m.senderId === currentUser.uid);
+          const div = document.createElement('div');
+          div.className = `message ${mine ? 'outgoing' : 'incoming'}`;
+          div.dataset.key = m.key;
+          div.dataset.path = path;
+          let replyHtml = '';
+          if(m.replyTo) replyHtml = `<div class="reply-container" onclick="scrollToMessage('${m.replyTo.key}')">${escapeHtml(m.replyTo.senderName)}: ${escapeHtml(m.replyTo.text)}</div>`;
+          div.innerHTML = `
+            <div class="sender-line ${mine ? 'right' : ''}">
+              ${!mine ? `<img class="sender-pic" src="${m.senderPic||''}"/>` : ''}
+              <div class="sender">${escapeHtml(m.senderName)}</div>
+              ${mine ? `<img class="sender-pic" src="${m.senderPic||''}"/>` : ''}
+            </div>
+            ${replyHtml}
+            <div class="text">${escapeHtml(m.text || '[Image]')}</div>
+            <div class="time">${new Date(m.timestamp||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="status ${m.status==='Seen'?'seen':''}">${m.status||''}</div>
+          `;
+          div.ondblclick = ()=> handleReplyClick(m, m.key);
+          attachDelete(div);
+          messagesEl.appendChild(div);
+        }
+
+        // scroll to bottom
         messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+      }, err=>{
+        console.error('messages.on error', err);
+      });
+    }
 
+    // user typing state updates
+    messageInput.addEventListener('input', ()=>{
+      if(!currentUser || !currentChatId) return;
+      db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(()=>{ if(currentUser && currentChatId) db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false); }, 1000);
+    });
+
+    // Send message (works for both normal & bot chat)
+    sendBtn.onclick = async ()=>{
+      const txt = messageInput.value.trim(); if(!txt) return;
+      if(!currentUser){ alert('Please sign in with Google to send messages.'); return; }
+
+      const path = isGroup ? `groups/${currentChatId}/chats` : `chats/${currentChatId}`;
+      const msg = { senderId: currentUser.uid, senderName: currentUser.displayName, senderPic: currentUser.photoURL||'', text: txt, timestamp: Date.now(), status: 'Sent' };
+      if(replyTo) msg.replyTo = replyTo;
+
+      // push to DB
+      let pushRef;
+      try {
+        pushRef = await db.ref(path).push(msg);
+        messageInput.value = '';
+        cancelReply();
+        if(currentUser && currentChatId) db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+        await pushRef.update({ status: 'Delivered' });
+      } catch (err) {
+        console.error('push message error', err);
+      }
+
+      // If this is Gconnect bot chat -> call backend and push bot reply to same path
+      if(currentChatId && currentChatId.includes('gconnect_bot')){
+        // show local typing indicator
+        typingEl.style.visibility = 'visible';
         try {
           const payload = {
             messages: [{ role: "user", content: txt }],
@@ -238,22 +489,109 @@
             body: JSON.stringify(payload)
           });
           const json = await resp.json();
-          typingDiv.remove();
-
+          typingEl.style.visibility = 'hidden';
           const replyText = json.replyText || (json.result && (json.result.choices?.[0]?.message?.content || json.result.output?.[0]?.content)) || "Sorry, bot didn't respond.";
+
+          // push bot reply
           await db.ref(path).push({ senderId: 'gconnect_bot', senderName: 'GConnect', senderPic: VERIFIED_DATA_URL, text: replyText, timestamp: Date.now(), status: 'Sent' });
         } catch (err) {
-          console.error('Bot proxy error', err);
-          typingDiv.remove();
+          console.error('bot proxy error', err);
+          typingEl.style.visibility = 'hidden';
           await db.ref(path).push({ senderId: 'gconnect_bot', senderName: 'GConnect', senderPic: VERIFIED_DATA_URL, text: 'Bot unavailable right now.', timestamp: Date.now(), status: 'Sent' });
         }
       }
     };
 
-    messageInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendBtn.click(); });
+    function handleReplyClick(m, k){ replyTo = { key: k, text: m.text, senderName: m.senderName }; document.getElementById('replyText').textContent = `${m.senderName}: ${m.text.slice(0,50)}`; document.getElementById('replyPreview').style.display = 'block'; }
+    function cancelReply(){ replyTo = null; document.getElementById('replyPreview').style.display = 'none'; }
+    function scrollToMessage(key){ const msg = document.querySelector(`[data-key="${key}"]`); if(msg){ msg.classList.add('highlight'); msg.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(()=>msg.classList.remove('highlight'),1200); } }
 
-    // Initialize: show bot entry even before login
-    document.addEventListener('DOMContentLoaded', ()=> { loadChats(); addGconnectBot(); });
+    /* -----------------------------
+       Delete menu (keeps original behavior)
+       - Delete for me: removes DOM element locally (won't remove from DB)
+       - Delete for everyone: removes node in DB
+       ----------------------------- */
+    function attachDelete(el){
+      el.addEventListener('contextmenu', e=>{
+        e.preventDefault();
+        showDeleteMenu(e.pageX, e.pageY, el);
+      });
+    }
+
+    function showDeleteMenu(x,y,el){
+      deleteMenu.style.display = 'block';
+      deleteMenu.style.top = y + 'px';
+      deleteMenu.style.left = x + 'px';
+      deleteMenu.dataset.key = el.dataset.key;
+      deleteMenu.dataset.path = el.dataset.path;
+    }
+
+    document.addEventListener('click', ()=> { deleteMenu.style.display = 'none'; });
+
+    delForMe.onclick = () => {
+      const key = deleteMenu.dataset.key;
+      const selector = `[data-key="${key}"]`;
+      const el = document.querySelector(selector);
+      if(el) el.remove();
+      deleteMenu.style.display = 'none';
+    };
+
+    delForAll.onclick = async () => {
+      const key = deleteMenu.dataset.key;
+      const path = deleteMenu.dataset.path;
+      if(path && key){
+        try {
+          await db.ref(`${path}/${key}`).remove();
+        } catch (err) {
+          console.error('delete for all error', err);
+        }
+      }
+      deleteMenu.style.display = 'none';
+    };
+
+    /* -----------------------------
+       GROUP CREATION (keeps original)
+       ----------------------------- */
+    groupBtn.onclick = openGroupModal;
+
+    function openGroupModal(){
+      memberList.innerHTML = '';
+      const groupNameInput = document.getElementById('groupNameInput');
+      if(groupNameInput) groupNameInput.value = '';
+      db.ref('users').once('value').then(snap=>{
+        snap.forEach(uSnap=>{
+          const u = uSnap.val();
+          if(!u || !u.uid) return;
+          if(currentUser && u.uid === currentUser.uid) return;
+          const div = document.createElement('div'); div.className = 'member-item';
+          div.innerHTML = `<label><input type="checkbox" value="${u.uid}" data-name="${escapeHtml(u.name)}" /> ${escapeHtml(u.name)}</label>`;
+          memberList.appendChild(div);
+        });
+        groupModal.classList.add('active');
+      }).catch(err=>{
+        console.error('openGroupModal error', err);
+      });
+    }
+    function closeGroupModal(){ groupModal.classList.remove('active'); }
+
+    createGroupBtn.onclick = ()=>{
+      const name = document.getElementById('groupNameInput').value.trim();
+      if(!name){ alert('গ্রুপের নাম দিন'); return; }
+      const selected = Array.from(memberList.querySelectorAll('input:checked')).map(i=>({ uid: i.value, name: i.dataset.name }));
+      if(selected.length < 1){ alert('কমপক্ষে ১ জন সিলেক্ট করুন'); return; }
+      if(!currentUser){ alert('Please sign in to create group'); return; }
+      const members = [...selected, { uid: currentUser.uid, name: currentUser.displayName }];
+      const groupId = members.map(u=>u.uid).sort().join('_');
+      db.ref('groups/' + groupId).set({ id: groupId, name, members: members.reduce((o,u)=>{ o[u.uid]=u.name; return o; }, {}) })
+        .then(()=>{ closeGroupModal(); loadGroups(); })
+        .catch(err=>{ console.error('createGroup error', err); });
+    };
+
+    function loadGroups(){ /* handled in loadChats -> loadGroups() */ }
+
+    // ensure bot entry visible on load
+    document.addEventListener('DOMContentLoaded', ()=>{ addGconnectBot(); });
+
   </script>
 </body>
-        </html>
+  </html>
