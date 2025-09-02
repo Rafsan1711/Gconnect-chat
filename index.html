@@ -134,7 +134,7 @@
     async function getAIResponse(prompt){
       try {
         // gpt4free.io endpoint, public, no key needed (sometimes unavailable, see tips below)
-        const res = await fetch('https://gpt4free.io/api/v1/chat/completions', {
+        const res = await fetch('https://router.huggingface.co/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
