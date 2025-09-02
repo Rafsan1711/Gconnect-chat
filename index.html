@@ -6,18 +6,13 @@
   <title>GConnect Chat App</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
-    /* ==== Reset & Base ==== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #121c21; color: #e1e1e1; height: 100vh; }
     .app { display: flex; height: 100%; }
-
-    /* ==== Splash Screen ==== */
     #splashScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
       display: flex; align-items: center; justify-content: center; z-index: 99999; }
     #splashScreen img { width: 100%; height: 100%; object-fit: cover; }
     body.hidden-scroll { overflow: hidden; }
-
-    /* ==== Sidebar ==== */
     .sidebar { width: 30%; background: #242f34; border-right: 1px solid #333; flex-direction: column; display: flex; }
     #header { background: #075e54; color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
     #header .header-right { display: flex; align-items: center; }
@@ -32,21 +27,20 @@
     .user-item:hover, .group-item:hover { background: #2a343b; }
     .avatar { width: 36px; height: 36px; border-radius: 50%; background: #555; margin-right: 12px; position: relative; overflow: hidden; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar .verified { position: absolute; right: -4px; top: 0; width: 18px; height: 18px; }
     .status-dot { width:10px; height:10px; border-radius:50%; position:absolute; bottom:2px; right:2px; border:2px solid #242f34; }
     .online { background: #00e676; } .offline { background: #757575; }
-    .name { font-size: 1rem; flex: 1; }
-
-    /* ==== Chat Section ==== */
-.chat-section { width: 70%; display: flex; flex-direction: column; background: #111b21; }
+    .name { font-size: 1rem; flex: 1; display: flex; align-items: center; gap: 2px; }
+    .chat-section { width: 70%; display: flex; flex-direction: column; background: #111b21; }
     #chatHeader { background: #498fe0; color: #fff; padding: 12px 16px; display: flex; align-items: center; position: relative; }
     #backBtn { display: none; margin-right: 12px; background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
-    #chatHeader .avatar { width: 32px; height: 32px; border-radius: 50%; background: #555; margin-right: 12px; overflow: hidden; }
+    #chatHeader .avatar { width: 32px; height: 32px; border-radius: 50%; background: #555; margin-right: 12px; position: relative; overflow: hidden; }
     #chatHeader .avatar img { width:100%; height:100%; object-fit:cover; }
-    #chatHeader span { font-weight: bold; flex: 1; }
+    #chatHeader .avatar .verified { position: absolute; right: -4px; top: 0; width: 16px; height: 16px; }
+    #chatHeader span { font-weight: bold; flex: 1; display: flex; align-items: center; gap: 5px; }
     #typingIndicator { visibility: hidden; display: inline-flex; align-items: center; margin-left: 8px; }
     #typingIndicator .dot { width:6px; height:6px; background:#fff; border-radius:50%; margin:0 1px; animation:bounce 1s infinite; }
     @keyframes bounce { 0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-4px);} }
-
     #messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; }
     .message { max-width: 70%; margin-bottom: 16px; padding: 10px 12px 24px; position: relative; border-radius: 8px; word-wrap: break-word; }
     .incoming { background: #2a2f32; align-self: flex-start; border-radius: 0 8px 8px 8px; }
@@ -54,39 +48,33 @@
     .time { font-size:.7rem; color:#aaa; position:absolute; bottom:4px; right:8px; }
     .status { font-size:.6rem; position:absolute; bottom:4px; left:8px; color:#777; }
     .status.seen { color:#2196F3; }
-
     .sender-line { display:flex; align-items:center; margin-bottom:4px; }
     .sender-line.right { justify-content:flex-end; }
     .sender { font-size:.75rem; font-weight:bold; color:#ccc; }
     .sender-pic { width:24px; height:24px; border-radius:50%; display:inline-block; }
-
     .input-area { display:flex; padding:12px; background:#2a343b; }
     #messageInput { flex:1; padding:10px; border-radius:20px; border:1px solid #333; background:#121c21; color:#e1e1e1; }
     #sendBtn { margin-left:8px; width:40px; height:40px; border:none; border-radius:50%; background:#128c7e; color:#fff; font-size:1.2rem; cursor:pointer; }
-
     .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; }
     .modal.active { display:flex; }
     .modal-content { background:#242f34; border-radius:8px; padding:20px; width:90%; max-width:400px; box-shadow:0 2px 10px rgba(0,0,0,0.5); text-align:center; color:#e1e1e1; position:relative; }
     .close-btn { position:absolute; top:12px; right:16px; border:none; background:transparent; font-size:1.2rem; color:#e1e1e1; cursor:pointer; }
     .member-list { max-height:200px; overflow-y:auto; margin-bottom:12px; text-align:left; }
     .member-item { margin:6px 0; }
-
     #deleteMenu { position:absolute; display:none; background:#242f34; box-shadow:0 2px 6px rgba(0,0,0,0.5); border-radius:4px; z-index:1000; }
     #deleteMenu button { width:100%; padding:8px 12px; border:none; background:none; text-align:left; color:#e1e1e1; cursor:pointer; }
     #deleteMenu button:hover { background:#2a343b; }
-    
     @media (max-width:600px){
       .app{flex-direction:column;}
       .sidebar{width:100%;height:100vh;border-bottom:1px solid #333;}
       .chat-section{width:100%;height:100vh;display:none;}
       #backBtn{display:block;}
     }
-
     .reply-preview{background:#1d2c32;border-left:4px solid #25d366;padding:6px 12px;margin-bottom:6px;color:#ccc;position:relative;border-radius:6px;}
     .reply-preview .close-reply{position:absolute;top:2px;right:6px;cursor:pointer;color:#999;}
     .reply-container{background:rgba(255,255,255,0.05);padding:4px 8px;border-left:3px solid #25d366;margin-bottom:6px;color:#aaa;border-radius:4px;cursor:pointer;}
     .message.highlight{animation:pulse 0.8s;background:#2b3a40;}
-    @keyframes pulse{0%{background:#2b3a40;}50%{background:#3a4b52;}100%{background:#2b3a40;}}
+    @keyframes pulse{0%{background:#2b3a40;}50%{background:#3a4b52;}100%{background:#2b3a40;}
   </style>
 </head>
 <body>
@@ -124,8 +112,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Create Group Modal -->
   <div id="groupModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeGroupModal()">&times;</button>
@@ -135,18 +121,33 @@
       <button id="createGroupBtn">Create</button>
     </div>
   </div>
-
-  <!-- Delete Menu -->
   <div id="deleteMenu">
     <button id="deleteForMe">Delete for me</button>
     <button id="deleteForEveryone">Delete for everyone</button>
   </div>
-
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
+    // --- AI response helper ---
+    async function getAIResponse(prompt){
+      try {
+        // gpt4free.io endpoint, public, no key needed (sometimes unavailable, see tips below)
+        const res = await fetch('https://gpt4free.io/api/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{role:"user",content: prompt}],
+            stream: false
+          })
+        });
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || "AI couldn't generate a response.";
+      } catch(e) { return "AI unavailable."; }
+    }
+
     // Splash
     document.body.classList.add('hidden-scroll');
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -190,6 +191,7 @@
           typingEl = document.getElementById('typingIndicator');
 
     let currentUser=null, currentChatId=null, isGroup=false, chatUsers=[], typingTimeout=null, replyTo=null;
+    let aiMessages = [];
 
     // Login
     loginBtn.onclick = ()=> auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -208,8 +210,24 @@
     // Load chats + groups
     function loadChats(){
       chatList.innerHTML='';
+      // --- Custom Gconnect AI User ---
+      const gconnectDiv = document.createElement('div');
+      gconnectDiv.className='user-item';
+      gconnectDiv.dataset.uid='gconnect-ai';
+      gconnectDiv.innerHTML = `
+        <div class="avatar" style="position:relative;">
+          <img src="favicon.png"/>
+          <img src="verified.png" class="verified"/>
+        </div>
+        <div class="name">
+          Gconnect
+        </div>`;
+      gconnectDiv.onclick = ()=>openChat([{uid:'gconnect-ai', name:'Gconnect', photoURL:'favicon.png', ai:true}]);
+      chatList.appendChild(gconnectDiv);
+
+      // --- Rest of users ---
       db.ref('users').on('value',snap=>{
-        chatList.innerHTML='';
+        Array.from(chatList.children).forEach((el,i)=>{ if(i>0) el.remove(); }); // remove all except AI
         snap.forEach(c=>{
           const u=c.val(); if(!u.uid||u.uid===currentUser.uid) return;
           const div=document.createElement('div');
@@ -231,8 +249,12 @@
       isGroup = users.length>1;
       chatUsers = [...users, { uid:currentUser.uid, name:currentUser.displayName }];
       currentChatId = gid || chatUsers.map(u=>u.uid).sort().join('_');
+      const isAI = users.length===1 && users[0].uid==='gconnect-ai';
 
-      if(isGroup){
+      if(isAI){
+        chatNameEl.innerHTML = `<span>Gconnect <img src="verified.png" style="width:16px;height:16px;"/></span>`;
+        chatHeaderAv.innerHTML = `<img src="favicon.png"/><img src="verified.png" class="verified"/>`;
+      } else if(isGroup){
         chatNameEl.textContent = 'Group: '+users.map(u=>u.name).join(', ');
         chatHeaderAv.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;">👥</div>`;
       } else {
@@ -244,18 +266,44 @@
       if(window.innerWidth<=600){ sidebar.style.display='none'; chatSection.style.display='flex'; }
       backBtn.style.display='block';
       messageInput.disabled=false; sendBtn.disabled=false;
-      loadMessages();
-      db.ref('typing/'+currentChatId).off();
-      db.ref('typing/'+currentChatId).on('value',snap=>{
-        const d=snap.val()||{}, someone=Object.keys(d).some(uid=>uid!==currentUser.uid&&d[uid]);
-        typingEl.style.visibility = someone?'visible':'hidden';
+
+      if(isAI){
+        loadAIMessages();
+        typingEl.style.visibility = 'hidden';
+      } else {
+        loadMessages();
+        db.ref('typing/'+currentChatId).off();
+        db.ref('typing/'+currentChatId).on('value',snap=>{
+          const d=snap.val()||{}, someone=Object.keys(d).some(uid=>uid!==currentUser.uid&&d[uid]);
+          typingEl.style.visibility = someone?'visible':'hidden';
+        });
+      }
+    }
+
+    function loadAIMessages(){
+      messagesEl.innerHTML = '';
+      aiMessages.forEach(m=>{
+        const mine = m.senderId===currentUser.uid;
+        const div = document.createElement('div');
+        div.className = `message ${mine?'outgoing':'incoming'}`;
+        div.innerHTML = `
+          <div class="sender-line ${mine?'right':''}">
+            <img class="sender-pic" src="${m.senderPic||''}"/>
+            <div class="sender">${m.senderName}</div>
+          </div>
+          <div class="text">${m.text}</div>
+          <div class="time">${new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+        `;
+        messagesEl.appendChild(div);
       });
+      messagesEl.scrollTo({ top:messagesEl.scrollHeight, behavior:'smooth' });
     }
 
     backBtn.onclick=()=>{
       if(window.innerWidth<=600){ sidebar.style.display='flex'; chatSection.style.display='none'; }
       backBtn.style.display='none'; messagesEl.innerHTML=''; messageInput.value=''; messageInput.disabled=true; sendBtn.disabled=true; typingEl.style.visibility='hidden';
       db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false);
+      aiMessages = [];
     };
 
     // Messages
@@ -295,8 +343,22 @@
       typingTimeout=setTimeout(()=>db.ref('typing/'+currentChatId+'/'+currentUser.uid).set(false),1000);
     });
 
-    sendBtn.onclick=()=>{
-      const txt=messageInput.value.trim(); if(!txt)return;
+    sendBtn.onclick=async ()=>{
+      const txt = messageInput.value.trim(); if(!txt)return;
+      if(currentChatId==='gconnect-ai_'+currentUser.uid || currentChatId===currentUser.uid+'_gconnect-ai'){
+        const msg = { senderId:currentUser.uid, senderName:currentUser.displayName, senderPic:currentUser.photoURL||'', text:txt, timestamp:Date.now() };
+        aiMessages.push(msg);
+        loadAIMessages();
+        messageInput.value='';
+        typingEl.style.visibility='visible';
+        setTimeout(async ()=>{
+          const aiText = await getAIResponse(txt);
+          aiMessages.push({ senderId:'gconnect-ai', senderName:'Gconnect', senderPic:'favicon.png', text:aiText, timestamp:Date.now() });
+          loadAIMessages();
+          typingEl.style.visibility='hidden';
+        }, 1500);
+        return;
+      }
       const msg={ senderId:currentUser.uid, senderName:currentUser.displayName, senderPic:currentUser.photoURL||'', text:txt, timestamp:Date.now(), status:'Sent' };
       if(replyTo) msg.replyTo=replyTo;
       const ref=db.ref(isGroup?`groups/${currentChatId}/chats`:`chats/${currentChatId}`).push(msg);
@@ -306,7 +368,7 @@
 
     function handleReplyClick(m,k){ replyTo={ key:k, text:m.text, senderName:m.senderName }; document.getElementById('replyText').textContent=`${m.senderName}: ${m.text.slice(0,50)}`; document.getElementById('replyPreview').style.display='block'; }
     function cancelReply(){ replyTo=null; document.getElementById('replyPreview').style.display='none'; }
-    function scrollToMessage(key){ const msg=document.querySelector(`[data-key="${key}"]`); if(msg){ msg.classList.add('highlight'); msg.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(()=>msg.classList.remove('highlight'),1200); }}
+    function scrollToMessage(key){ const msg=document.querySelector(`[data-key="${key}"]`); if(msg){ msg.classList.add('highlight'); msg.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(()=>msg.classList.remove('highlight'),800); } }
 
     function attachDelete(el){ el.addEventListener('contextmenu',e=>{ e.preventDefault(); showDeleteMenu(e.pageX,e.pageY,el); }); }
     function showDeleteMenu(x,y,el){ deleteMenu.style.display='block'; deleteMenu.style.top=y+'px'; deleteMenu.style.left=x+'px'; deleteMenu.dataset.key=el.dataset.key; deleteMenu.dataset.path=el.dataset.path; }
@@ -353,4 +415,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
