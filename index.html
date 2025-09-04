@@ -153,7 +153,10 @@
 
     // small inline verified svg so no external file needed
     const VERIFIED_DATA_URL = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2DA44E"/><path d="M9.5 12.8l1.9 1.9 4.1-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36">' +
+      '<circle cx="12" cy="12" r="12" fill="#2DA44E"/>' +
+      '<path d="M7 12l3 3 7-7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>' +
+      '</svg>'
     );
 
     // Splash
@@ -420,8 +423,23 @@
           div.className = `message ${mine ? 'outgoing' : 'incoming'}`;
           div.dataset.key = m.key;
           div.dataset.path = path;
+          // reply preview if exists
           let replyHtml = '';
-          if(m.replyTo) replyHtml = `<div class="reply-container" onclick="scrollToMessage('${m.replyTo.key}')">${escapeHtml(m.replyTo.senderName)}: ${escapeHtml(m.replyTo.text)}</div>`;
+          if(m.replyTo) {
+            const r = m.replyTo;
+            replyHtml = `<div class="reply-container" onclick="scrollToMessage('${r.key}')">${escapeHtml(r.senderName)}: ${escapeHtml((r.text||'').slice(0,120))}</div>`;
+          }
+
+          // content: either video or text
+          let contentHtml = '';
+          if(m.video){
+            // embed video iframe
+            const safeUrl = escapeHtml(m.video);
+            contentHtml = `<div style="margin:6px 0;"><iframe width="320" height="180" src="${safeUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+          } else {
+            contentHtml = `<div class="text">${escapeHtml(m.text || '[Image]')}</div>`;
+          }
+
           div.innerHTML = `
             <div class="sender-line ${mine ? 'right' : ''}">
               ${!mine ? `<img class="sender-pic" src="${m.senderPic||''}"/>` : ''}
@@ -429,7 +447,7 @@
               ${mine ? `<img class="sender-pic" src="${m.senderPic||''}"/>` : ''}
             </div>
             ${replyHtml}
-            <div class="text">${escapeHtml(m.text || '[Image]')}</div>
+            ${contentHtml}
             <div class="time">${new Date(m.timestamp||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
             <div class="status ${m.status==='Seen'?'seen':''}">${m.status||''}</div>
           `;
@@ -462,7 +480,7 @@
       const msg = { senderId: currentUser.uid, senderName: currentUser.displayName, senderPic: currentUser.photoURL||'', text: txt, timestamp: Date.now(), status: 'Sent' };
       if(replyTo) msg.replyTo = replyTo;
 
-      // push to DB
+      // push user's message to DB first
       let pushRef;
       try {
         pushRef = await db.ref(path).push(msg);
@@ -474,15 +492,47 @@
         console.error('push message error', err);
       }
 
-      // If this is Gconnect bot chat -> call backend and push bot reply to same path
+      // If this is Gconnect bot chat -> build full conversation context and call backend
       if(currentChatId && currentChatId.includes('gconnect_bot')){
         // show local typing indicator
         typingEl.style.visibility = 'visible';
+
         try {
+          // Build conversation history from DB (last N messages)
+          const historySnap = await db.ref(path).orderByChild('timestamp').once('value');
+          const history = [];
+          historySnap.forEach(mSnap=>{
+            const m = mSnap.val();
+            // map firebase message to chat roles
+            if(!m) return;
+            if(m.senderId === 'gconnect_bot'){
+              history.push({ role: 'assistant', content: m.text || '' });
+            } else {
+              // user's messages (treat others as user as well)
+              history.push({ role: 'user', content: m.text || '' });
+            }
+          });
+
+          // keep only the last N messages to avoid oversized payload
+          const MAX_HISTORY = 20;
+          const trimmed = history.slice(Math.max(0, history.length - MAX_HISTORY));
+
+          // system instruction (custom instructions)
+          const systemInstruction = {
+            role: 'system',
+            content: `You are "Gconnect assistant". Behave as a friendly, helpful assistant. Keep conversational context between messages: remember previous messages in this chat and use them when answering. When a user mentions or pastes a YouTube link or asks about a YouTube video, respond by returning an embedded iframe link (use embed URL like https://www.youtube.com/embed/VIDEO_ID) and keep a short textual context. Keep answers concise and friendly. Do not invent personal data.`
+          };
+
+          // ensure latest user message at the end (we already pushed it to DB, but include it explicitly too)
+          const messagesForServer = [systemInstruction, ...trimmed];
+          // Optionally ensure last element is the user's latest message text
+          messagesForServer.push({ role: 'user', content: txt });
+
           const payload = {
-            messages: [{ role: "user", content: txt }],
+            messages: messagesForServer,
             model: "openai/gpt-oss-120b:together"
           };
+
           const resp = await fetch(`${SERVER_BASE}/api/query`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -490,10 +540,21 @@
           });
           const json = await resp.json();
           typingEl.style.visibility = 'hidden';
+
           const replyText = json.replyText || (json.result && (json.result.choices?.[0]?.message?.content || json.result.output?.[0]?.content)) || "Sorry, bot didn't respond.";
 
-          // push bot reply
-          await db.ref(path).push({ senderId: 'gconnect_bot', senderName: 'GConnect', senderPic: VERIFIED_DATA_URL, text: replyText, timestamp: Date.now(), status: 'Sent' });
+          // detect YouTube link in the reply (or you can also detect if user asked for a youtube video and server returned a url)
+          const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
+          const m = replyText.match(ytRegex);
+          if(m && m[1]){
+            const vid = m[1];
+            const embedUrl = `https://www.youtube.com/embed/${vid}`;
+            // push bot reply as a video message (so the client will render iframe)
+            await db.ref(path).push({ senderId: 'gconnect_bot', senderName: 'GConnect', senderPic: VERIFIED_DATA_URL, video: embedUrl, text: replyText, timestamp: Date.now(), status: 'Sent' });
+          } else {
+            // no youtube -> push text reply
+            await db.ref(path).push({ senderId: 'gconnect_bot', senderName: 'GConnect', senderPic: VERIFIED_DATA_URL, text: replyText, timestamp: Date.now(), status: 'Sent' });
+          }
         } catch (err) {
           console.error('bot proxy error', err);
           typingEl.style.visibility = 'hidden';
@@ -502,9 +563,26 @@
       }
     };
 
-    function handleReplyClick(m, k){ replyTo = { key: k, text: m.text, senderName: m.senderName }; document.getElementById('replyText').textContent = `${m.senderName}: ${m.text.slice(0,50)}`; document.getElementById('replyPreview').style.display = 'block'; }
-    function cancelReply(){ replyTo = null; document.getElementById('replyPreview').style.display = 'none'; }
-    function scrollToMessage(key){ const msg = document.querySelector(`[data-key="${key}"]`); if(msg){ msg.classList.add('highlight'); msg.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(()=>msg.classList.remove('highlight'),1200); } }
+    // Reply / reply preview and scroll helpers
+    function handleReplyClick(m, k){
+      replyTo = { key: k, text: m.text, senderName: m.senderName };
+      const preview = document.getElementById('replyPreview');
+      document.getElementById('replyText').textContent = `${m.senderName}: ${ (m.text||'').slice(0,120) }`;
+      preview.style.display = 'block';
+      // focus input
+      messageInput.focus();
+    }
+    function cancelReply(){ replyTo = null; const pr = document.getElementById('replyPreview'); if(pr) pr.style.display = 'none'; }
+    function scrollToMessage(key){
+      const msg = document.querySelector(`[data-key="${key}"]`);
+      if(msg){
+        msg.classList.add('highlight');
+        msg.scrollIntoView({ behavior:'smooth', block:'center' });
+        setTimeout(()=> msg.classList.remove('highlight'), 2200);
+      } else {
+        console.warn('message not found for scroll:', key);
+      }
+    }
 
     /* -----------------------------
        Delete menu (keeps original behavior)
